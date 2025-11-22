@@ -577,7 +577,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
         if (message.type === 'auth' && message.userId) {
           userId = message.userId;
           connectedUsers.set(userId, ws);
-          await storage.updateUserStatus(userId, "online");
+          if (userId) {
+            await storage.updateUserStatus(userId, "online");
+          }
         }
       } catch (error) {
         console.error('WebSocket message error:', error);
