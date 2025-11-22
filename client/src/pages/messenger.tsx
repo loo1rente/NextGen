@@ -69,8 +69,15 @@ export default function MessengerPage() {
       const res = await apiRequest("POST", "/api/messages", { receiverId, groupId, content });
       return await res.json();
     },
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["/api/messages"] });
+    onSuccess: (newMessage: Message) => {
+      // Update the messages cache with the new message instead of invalidating
+      queryClient.setQueryData(["/api/messages"], (old: Message[] | undefined) => {
+        if (!old) return [newMessage];
+        // Check if message already exists to prevent duplicates
+        const exists = old.some(m => m.id === newMessage.id);
+        if (exists) return old;
+        return [...old, newMessage];
+      });
     },
     onError: (error: Error) => {
       toast({
