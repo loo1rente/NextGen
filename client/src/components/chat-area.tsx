@@ -1,5 +1,4 @@
 import { useState, useEffect, useRef } from "react";
-import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { ScrollArea } from "@/components/ui/scroll-area";
@@ -8,6 +7,7 @@ import { formatDistanceToNow, format } from "date-fns";
 import { useAuth } from "@/lib/auth-context";
 import { useLanguage } from "@/lib/language-context";
 import { useToast } from "@/hooks/use-toast";
+import { AvatarDisplay } from "@/components/avatar-display";
 import type { User, Message } from "@shared/schema";
 
 interface ChatAreaProps {
@@ -55,13 +55,6 @@ export function ChatArea({ friend, messages, onSendMessage, isSending }: ChatAre
     }
   };
 
-  const getInitials = (username: string) => {
-    return username.slice(0, 2).toUpperCase();
-  };
-
-  const getAvatarUrl = (username: string) => {
-    return `https://ui-avatars.com/api/?name=${encodeURIComponent(username)}&background=0D8ABC&color=fff&size=128`;
-  };
 
   if (!friend) {
     return (
@@ -81,10 +74,11 @@ export function ChatArea({ friend, messages, onSendMessage, isSending }: ChatAre
       <div className="h-16 border-b border-border px-4 flex items-center justify-between shrink-0 bg-gradient-to-r from-background to-background/95">
         <div className="flex items-center gap-3">
           <div className="relative">
-            <Avatar className="h-9 w-9">
-              <img src={getAvatarUrl(friend.username)} alt={friend.username} />
-              <AvatarFallback>{getInitials(friend.username)}</AvatarFallback>
-            </Avatar>
+            <AvatarDisplay 
+              username={friend.username} 
+              avatarUrl={friend.avatarUrl}
+              size="md"
+            />
             {friend.status === "online" && (
               <div className="absolute bottom-0 right-0 h-2.5 w-2.5 rounded-full bg-status-online border-2 border-background" />
             )}
@@ -136,9 +130,16 @@ export function ChatArea({ friend, messages, onSendMessage, isSending }: ChatAre
                     </div>
                   )}
                   <div
-                    className={`flex ${isSent ? "justify-end" : "justify-start"} animate-fade-in`}
+                    className={`flex ${isSent ? "justify-end" : "justify-start"} animate-fade-in gap-2`}
                     data-testid={`message-${message.id}`}
                   >
+                    {!isSent && (
+                      <AvatarDisplay 
+                        username={friend.username} 
+                        avatarUrl={friend.avatarUrl}
+                        size="sm"
+                      />
+                    )}
                     <div
                       className={`max-w-[65%] px-4 py-2 rounded-3xl shadow-sm ${
                         isSent

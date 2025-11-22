@@ -1,12 +1,13 @@
 import { useState } from "react";
 import { Input } from "@/components/ui/input";
-import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Button } from "@/components/ui/button";
 import { Search, Plus } from "lucide-react";
 import { formatDistanceToNow } from "date-fns";
 import { useLanguage } from "@/lib/language-context";
+import { AvatarDisplay } from "@/components/avatar-display";
+import { CreateGroupDialog } from "@/components/create-group-dialog";
 import type { User, Message } from "@shared/schema";
 
 interface Conversation {
@@ -30,19 +31,7 @@ export function ConversationList({
 }: ConversationListProps) {
   const { t } = useLanguage();
   const [searchQuery, setSearchQuery] = useState("");
-
-  const handleCreateGroup = () => {
-    // TODO: Implement group creation dialog
-    alert('Group creation coming soon!');
-  };
-
-  const getInitials = (username: string) => {
-    return username.slice(0, 2).toUpperCase();
-  };
-
-  const getAvatarUrl = (username: string) => {
-    return `https://ui-avatars.com/api/?name=${encodeURIComponent(username)}&background=0D8ABC&color=fff&size=128`;
-  };
+  const [createGroupOpen, setCreateGroupOpen] = useState(false);
 
   const filteredConversations = conversations.filter((conv) =>
     conv.friend.username.toLowerCase().includes(searchQuery.toLowerCase())
@@ -66,7 +55,7 @@ export function ConversationList({
           <Button 
             size="icon" 
             variant="default" 
-            onClick={handleCreateGroup}
+            onClick={() => setCreateGroupOpen(true)}
             className="shrink-0"
             data-testid="button-create-group"
             title={t('messenger.createGroup')}
@@ -75,6 +64,11 @@ export function ConversationList({
           </Button>
         </div>
       </div>
+
+      <CreateGroupDialog 
+        open={createGroupOpen} 
+        onOpenChange={setCreateGroupOpen}
+      />
 
       <ScrollArea className="flex-1">
         {filteredConversations.length === 0 ? (
@@ -103,10 +97,11 @@ export function ConversationList({
                 >
                   <div className="flex items-start gap-3">
                     <div className="relative shrink-0">
-                      <Avatar className="h-10 w-10">
-                        <img src={getAvatarUrl(conv.friend.username)} alt={conv.friend.username} />
-                        <AvatarFallback>{getInitials(conv.friend.username)}</AvatarFallback>
-                      </Avatar>
+                      <AvatarDisplay 
+                        username={conv.friend.username} 
+                        avatarUrl={conv.friend.avatarUrl}
+                        size="md"
+                      />
                       {conv.friend.status === "online" && (
                         <div className="absolute bottom-0 right-0 h-2.5 w-2.5 rounded-full bg-status-online border-2 border-card" />
                       )}

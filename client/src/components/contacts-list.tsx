@@ -1,5 +1,4 @@
 import { useState } from "react";
-import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { ScrollArea } from "@/components/ui/scroll-area";
@@ -7,6 +6,7 @@ import { Card } from "@/components/ui/card";
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Search, UserPlus, MessageCircle } from "lucide-react";
 import { useLanguage } from "@/lib/language-context";
+import { AvatarDisplay } from "@/components/avatar-display";
 import type { User } from "@shared/schema";
 
 interface ContactsListProps {
@@ -19,13 +19,6 @@ export function ContactsList({ contacts, onStartChat, onAddFriendClick }: Contac
   const { t } = useLanguage();
   const [searchQuery, setSearchQuery] = useState("");
 
-  const getInitials = (username: string) => {
-    return username.slice(0, 2).toUpperCase();
-  };
-
-  const getAvatarUrl = (username: string) => {
-    return `https://ui-avatars.com/api/?name=${encodeURIComponent(username)}&background=0D8ABC&color=fff&size=128`;
-  };
 
   const filteredContacts = contacts.filter((contact) =>
     contact.username.toLowerCase().includes(searchQuery.toLowerCase())
@@ -77,10 +70,11 @@ export function ContactsList({ contacts, onStartChat, onAddFriendClick }: Contac
               <Card key={contact.id} className="p-4 border border-card-border hover:shadow-md transition-all hover-elevate">
                 <div className="flex items-center gap-4">
                   <div className="relative">
-                    <Avatar className="h-12 w-12">
-                      <img src={getAvatarUrl(contact.username)} alt={contact.username} />
-                      <AvatarFallback>{getInitials(contact.username)}</AvatarFallback>
-                    </Avatar>
+                    <AvatarDisplay 
+                      username={contact.username} 
+                      avatarUrl={contact.avatarUrl}
+                      size="lg"
+                    />
                     {contact.status === "online" && (
                       <div className="absolute bottom-0 right-0 h-3 w-3 rounded-full bg-status-online border-2 border-card" />
                     )}

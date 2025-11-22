@@ -1,6 +1,5 @@
 import { useQuery, useMutation } from "@tanstack/react-query";
 import { apiRequest, queryClient } from "@/lib/queryClient";
-import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { ScrollArea } from "@/components/ui/scroll-area";
@@ -8,6 +7,7 @@ import { useToast } from "@/hooks/use-toast";
 import { useLanguage } from "@/lib/language-context";
 import { Badge } from "@/components/ui/badge";
 import { Shield, Ban, Check } from "lucide-react";
+import { AvatarDisplay } from "@/components/avatar-display";
 import type { User } from "@shared/schema";
 
 export default function AdminPage() {
@@ -59,14 +59,6 @@ export default function AdminPage() {
     },
   });
 
-  const getInitials = (username: string) => {
-    return username.slice(0, 2).toUpperCase();
-  };
-
-  const getAvatarUrl = (avatarUrl: string | null | undefined, username: string) => {
-    if (avatarUrl) return avatarUrl;
-    return `https://ui-avatars.com/api/?name=${encodeURIComponent(username)}&background=0D8ABC&color=fff&size=128`;
-  };
 
   return (
     <div className="flex-1 flex flex-col h-full bg-background">
@@ -88,10 +80,11 @@ export default function AdminPage() {
             users.map((user) => (
               <Card key={user.id} className="p-4 border border-card-border hover:shadow-md transition-all hover-elevate">
                 <div className="flex items-center gap-4">
-                  <Avatar className="h-12 w-12">
-                    <img src={getAvatarUrl(user.avatarUrl, user.username)} alt={user.username} />
-                    <AvatarFallback>{getInitials(user.username)}</AvatarFallback>
-                  </Avatar>
+                  <AvatarDisplay 
+                    username={user.username} 
+                    avatarUrl={user.avatarUrl}
+                    size="lg"
+                  />
 
                   <div className="flex-1 min-w-0">
                     <div className="flex items-center gap-2 mb-1">
