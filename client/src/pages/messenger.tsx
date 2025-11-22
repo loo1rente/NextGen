@@ -277,53 +277,55 @@ export default function MessengerPage() {
         pendingRequestsCount={friendRequests.length}
       />
 
-      {activeView === "chats" && (
-        <>
-          <ConversationList
-            conversations={conversations}
-            groupConversations={groupConversations}
-            selectedFriendId={selectedFriendId}
-            selectedGroupId={selectedGroupId}
-            onSelectConversation={(friendId) => {
-              setSelectedFriendId(friendId);
-              setSelectedGroupId(null);
-            }}
-            onSelectGroup={(groupId) => {
-              setSelectedGroupId(groupId);
-              setSelectedFriendId(null);
-            }}
-            currentUserId={user?.id || ""}
+      <div className="flex flex-1 min-w-0">
+        {activeView === "chats" && (
+          <>
+            <ConversationList
+              conversations={conversations}
+              groupConversations={groupConversations}
+              selectedFriendId={selectedFriendId}
+              selectedGroupId={selectedGroupId}
+              onSelectConversation={(friendId) => {
+                setSelectedFriendId(friendId);
+                setSelectedGroupId(null);
+              }}
+              onSelectGroup={(groupId) => {
+                setSelectedGroupId(groupId);
+                setSelectedFriendId(null);
+              }}
+              currentUserId={user?.id || ""}
+            />
+            <ChatArea
+              friend={selectedFriend}
+              group={selectedGroup}
+              messages={selectedMessages}
+              onSendMessage={handleSendMessage}
+              isSending={sendMessageMutation.isPending}
+            />
+          </>
+        )}
+
+        {activeView === "contacts" && (
+          <ContactsList
+            contacts={friends}
+            onStartChat={handleStartChat}
+            onAddFriendClick={() => setAddFriendDialogOpen(true)}
           />
-          <ChatArea
-            friend={selectedFriend}
-            group={selectedGroup}
-            messages={selectedMessages}
-            onSendMessage={handleSendMessage}
-            isSending={sendMessageMutation.isPending}
+        )}
+
+        {activeView === "requests" && (
+          <FriendRequests
+            requests={friendRequests}
+            onAccept={(id) => acceptFriendMutation.mutate(id)}
+            onDecline={(id) => declineFriendMutation.mutate(id)}
+            isLoading={acceptFriendMutation.isPending || declineFriendMutation.isPending}
           />
-        </>
-      )}
+        )}
 
-      {activeView === "contacts" && (
-        <ContactsList
-          contacts={friends}
-          onStartChat={handleStartChat}
-          onAddFriendClick={() => setAddFriendDialogOpen(true)}
-        />
-      )}
+        {activeView === "settings" && <SettingsPage />}
 
-      {activeView === "requests" && (
-        <FriendRequests
-          requests={friendRequests}
-          onAccept={(id) => acceptFriendMutation.mutate(id)}
-          onDecline={(id) => declineFriendMutation.mutate(id)}
-          isLoading={acceptFriendMutation.isPending || declineFriendMutation.isPending}
-        />
-      )}
-
-      {activeView === "settings" && <SettingsPage />}
-
-      {activeView === "admin" && user?.isAdmin && <AdminPage />}
+        {activeView === "admin" && user?.isAdmin && <AdminPage />}
+      </div>
 
       <AddFriendDialog
         open={addFriendDialogOpen}
