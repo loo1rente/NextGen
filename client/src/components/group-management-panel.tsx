@@ -36,10 +36,10 @@ export function GroupManagementPanel({
     },
   });
 
-  const { data: allUsers = [], isLoading: usersLoading, error: usersError } = useQuery<User[]>({
-    queryKey: ["/api/users/search", "all"],
+  const { data: friends = [], isLoading: usersLoading, error: usersError } = useQuery<User[]>({
+    queryKey: ["/api/friends"],
     queryFn: async () => {
-      const res = await apiRequest("GET", "/api/users/search?q=");
+      const res = await apiRequest("GET", "/api/friends");
       return res.json();
     },
   });
@@ -74,7 +74,7 @@ export function GroupManagementPanel({
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["/api/groups", groupId, "members"] });
-      queryClient.invalidateQueries({ queryKey: ["/api/users/search"] });
+      queryClient.invalidateQueries({ queryKey: ["/api/friends"] });
       setSelectedMembersToAdd([]);
       toast({
         title: "Success",
@@ -91,12 +91,7 @@ export function GroupManagementPanel({
   });
 
   const memberIds = new Set(members.map(m => m.id));
-  const nonMembers = allUsers.filter(u => !memberIds.has(u.id));
-
-  // Log state for debugging
-  if (isCreator && usersError) {
-    console.error("Users loading error:", usersError);
-  }
+  const nonMembers = friends.filter(u => !memberIds.has(u.id));
 
   return (
     <div className="w-80 border-l border-border flex flex-col h-full bg-card">
@@ -164,11 +159,11 @@ export function GroupManagementPanel({
                 {t("messenger.addMembers")}
               </p>
               {usersError ? (
-                <p className="text-xs text-red-600 dark:text-red-400 px-2">Error loading users. Please try refreshing.</p>
+                <p className="text-xs text-red-600 dark:text-red-400 px-2">Error loading friends. Please try refreshing.</p>
               ) : usersLoading ? (
                 <p className="text-xs text-muted-foreground px-2">{t('messenger.loading')}</p>
-              ) : allUsers.length === 0 ? (
-                <p className="text-xs text-muted-foreground px-2">No users available</p>
+              ) : friends.length === 0 ? (
+                <p className="text-xs text-muted-foreground px-2">No friends to add</p>
               ) : nonMembers.length > 0 ? (
                 <div className="space-y-2">
                   {nonMembers.map((user) => (

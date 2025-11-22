@@ -14,7 +14,7 @@ import { Label } from "@/components/ui/label";
 import { ThemeToggle } from "@/components/theme-toggle";
 import { LanguageToggle } from "@/components/language-toggle";
 import { Settings, Upload, X, LogOut } from "lucide-react";
-import { useState, useRef } from "react";
+import { useState, useRef, useEffect } from "react";
 import type { User } from "@shared/schema";
 import { useLanguage } from "@/lib/language-context";
 
@@ -39,6 +39,16 @@ export default function SettingsPage() {
       username: user?.username || "",
     },
   });
+
+  // Update form values when user changes
+  useEffect(() => {
+    if (user) {
+      form.reset({
+        displayName: user.displayName || "",
+        username: user.username || "",
+      });
+    }
+  }, [user, form]);
 
   const updateProfileMutation = useMutation({
     mutationFn: async (data: ProfileFormData & { avatarUrl?: string }) => {
