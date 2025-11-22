@@ -78,7 +78,7 @@ export function ChatArea({ friend, messages, onSendMessage, isSending }: ChatAre
 
   return (
     <div className="flex-1 flex flex-col h-full bg-background">
-      <div className="h-16 border-b border-border px-4 flex items-center justify-between shrink-0">
+      <div className="h-16 border-b border-border px-4 flex items-center justify-between shrink-0 bg-gradient-to-r from-background to-background/95">
         <div className="flex items-center gap-3">
           <div className="relative">
             <Avatar className="h-9 w-9">
@@ -136,14 +136,14 @@ export function ChatArea({ friend, messages, onSendMessage, isSending }: ChatAre
                     </div>
                   )}
                   <div
-                    className={`flex ${isSent ? "justify-end" : "justify-start"}`}
+                    className={`flex ${isSent ? "justify-end" : "justify-start"} animate-fade-in`}
                     data-testid={`message-${message.id}`}
                   >
                     <div
-                      className={`max-w-[65%] px-4 py-2 rounded-2xl ${
+                      className={`max-w-[65%] px-4 py-2 rounded-3xl shadow-sm ${
                         isSent
-                          ? "bg-primary text-primary-foreground rounded-br-sm"
-                          : "bg-card text-card-foreground rounded-bl-sm"
+                          ? "bg-gradient-to-r from-primary to-primary/90 text-primary-foreground rounded-br-sm"
+                          : "bg-card border border-card-border text-card-foreground rounded-bl-sm"
                       }`}
                     >
                       <p className="text-sm leading-relaxed break-words">{message.content}</p>

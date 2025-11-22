@@ -50,7 +50,7 @@ export function FriendRequests({ requests, onAccept, onDecline, isLoading }: Fri
         ) : (
           <div className="p-4 space-y-3">
             {requests.map((request) => (
-              <Card key={request.id} className="p-4">
+              <Card key={request.id} className="p-4 border border-card-border hover:shadow-md transition-all hover-elevate">
                 <div className="flex items-center gap-4">
                   <Avatar className="h-12 w-12">
                     <img src={getAvatarUrl(request.requester.username)} alt={request.requester.username} />

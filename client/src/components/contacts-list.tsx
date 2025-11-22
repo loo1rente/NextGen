@@ -38,7 +38,7 @@ export function ContactsList({ contacts, onStartChat, onAddFriendClick }: Contac
           <div>
             <h2 className="text-lg font-semibold">{t('messenger.contacts')}</h2>
             <p className="text-sm text-muted-foreground mt-1">
-              {contacts.length} {contacts.length !== 1 ? t('messenger.contacts') : t('messenger.contactCount')}
+              {contacts.length} {contacts.length !== 1 ? t('messenger.contactsCount') : t('messenger.contactCount')}
             </p>
           </div>
           <Button onClick={onAddFriendClick} className="gap-2" data-testid="button-add-friend">
@@ -74,7 +74,7 @@ export function ContactsList({ contacts, onStartChat, onAddFriendClick }: Contac
         ) : (
           <div className="p-4 space-y-3">
             {filteredContacts.map((contact) => (
-              <Card key={contact.id} className="p-4">
+              <Card key={contact.id} className="p-4 border border-card-border hover:shadow-md transition-all hover-elevate">
                 <div className="flex items-center gap-4">
                   <div className="relative">
                     <Avatar className="h-12 w-12">

@@ -3,7 +3,8 @@ import { Input } from "@/components/ui/input";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
 import { ScrollArea } from "@/components/ui/scroll-area";
-import { Search } from "lucide-react";
+import { Button } from "@/components/ui/button";
+import { Search, Plus } from "lucide-react";
 import { formatDistanceToNow } from "date-fns";
 import { useLanguage } from "@/lib/language-context";
 import type { User, Message } from "@shared/schema";
@@ -30,6 +31,11 @@ export function ConversationList({
   const { t } = useLanguage();
   const [searchQuery, setSearchQuery] = useState("");
 
+  const handleCreateGroup = () => {
+    // TODO: Implement group creation dialog
+    alert('Group creation coming soon!');
+  };
+
   const getInitials = (username: string) => {
     return username.slice(0, 2).toUpperCase();
   };
@@ -44,17 +50,29 @@ export function ConversationList({
 
   return (
     <div className="w-full lg:w-80 border-r border-border flex flex-col h-full bg-card">
-      <div className="p-3 border-b border-card-border">
-        <div className="relative">
-          <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-          <Input
-            type="search"
-            placeholder={t('messenger.searchConversations')}
-            className="pl-9 bg-background"
-            value={searchQuery}
-            onChange={(e) => setSearchQuery(e.target.value)}
-            data-testid="input-search-conversations"
-          />
+      <div className="p-3 border-b border-card-border space-y-3">
+        <div className="flex items-center gap-2">
+          <div className="relative flex-1">
+            <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+            <Input
+              type="search"
+              placeholder={t('messenger.searchConversations')}
+              className="pl-9 bg-background"
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+              data-testid="input-search-conversations"
+            />
+          </div>
+          <Button 
+            size="icon" 
+            variant="default" 
+            onClick={handleCreateGroup}
+            className="shrink-0"
+            data-testid="button-create-group"
+            title={t('messenger.createGroup')}
+          >
+            <Plus className="h-5 w-5" />
+          </Button>
         </div>
       </div>
 
@@ -78,8 +96,8 @@ export function ConversationList({
                 <button
                   key={conv.friend.id}
                   onClick={() => onSelectConversation(conv.friend.id)}
-                  className={`w-full p-3 rounded-md text-left transition-colors hover-elevate active-elevate-2 ${
-                    isSelected ? "bg-accent" : ""
+                  className={`w-full p-3 rounded-lg text-left transition-all hover-elevate active-elevate-2 ${
+                    isSelected ? "bg-primary/10 border border-primary/20" : "hover:bg-muted"
                   }`}
                   data-testid={`button-conversation-${conv.friend.id}`}
                 >

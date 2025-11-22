@@ -116,6 +116,10 @@ Preferred communication style: Simple, everyday language.
 - **Group Chat Infrastructure**: Database schema and backend APIs ready
 - **Typing Indicators**: Backend infrastructure for typing status tracking
 - **Notifications**: Notification system with persistence and read tracking
+- **Full Language Support**: Complete English/Russian translations across all UI components
+- **Voice/Video Call Buttons**: UI buttons for voice and video calls in chat area
+- **Create Group Button**: Group creation button in conversation list (UI ready)
+- **Premium Design**: Enhanced UI with gradients, animations, improved shadows, and better spacing
 
 ### Upcoming Features
 - Group chat frontend UI
