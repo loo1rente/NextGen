@@ -27,18 +27,20 @@ export function GroupManagementPanel({
   const { toast } = useToast();
   const [selectedMembersToAdd, setSelectedMembersToAdd] = useState<string[]>([]);
 
-  const { data: members = [] } = useQuery<User[]>({
+  const { data: members = [], isLoading: membersLoading } = useQuery<User[]>({
     queryKey: ["/api/groups", groupId, "members"],
     queryFn: async () => {
       const res = await apiRequest("GET", `/api/groups/${groupId}/members-info`, {});
+      if (!res.ok) throw new Error("Failed to fetch members");
       return res.json();
     },
   });
 
-  const { data: allUsers = [] } = useQuery<User[]>({
+  const { data: allUsers = [], isLoading: usersLoading } = useQuery<User[]>({
     queryKey: ["/api/users/search"],
     queryFn: async () => {
       const res = await apiRequest("GET", "/api/users/search?q=", {});
+      if (!res.ok) throw new Error("Failed to fetch users");
       return res.json();
     },
   });
@@ -46,6 +48,7 @@ export function GroupManagementPanel({
   const removeMemberMutation = useMutation({
     mutationFn: async (memberId: string) => {
       const res = await apiRequest("DELETE", `/api/groups/${groupId}/members/${memberId}`, {});
+      if (!res.ok) throw new Error("Failed to remove member");
       return res.json();
     },
     onSuccess: () => {
@@ -67,10 +70,12 @@ export function GroupManagementPanel({
   const addMemberMutation = useMutation({
     mutationFn: async (memberId: string) => {
       const res = await apiRequest("POST", `/api/groups/${groupId}/members`, { memberId });
+      if (!res.ok) throw new Error("Failed to add member");
       return res.json();
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["/api/groups", groupId, "members"] });
+      queryClient.invalidateQueries({ queryKey: ["/api/users/search"] });
       setSelectedMembersToAdd([]);
       toast({
         title: "Success",
@@ -108,74 +113,84 @@ export function GroupManagementPanel({
 
       <ScrollArea className="flex-1">
         <div className="p-3 space-y-3">
-          <div>
-            <p className="text-xs font-semibold text-muted-foreground mb-2 px-2">
-              {t("messenger.members")} ({members.length})
-            </p>
-            <div className="space-y-2">
-              {members.map((member) => (
-                <div
-                  key={member.id}
-                  className="flex items-center justify-between p-2 rounded-lg hover:bg-muted transition-colors"
-                >
-                  <div className="flex items-center gap-2 min-w-0">
-                    <AvatarDisplay
-                      username={member.username}
-                      avatarUrl={member.avatarUrl}
-                      size="sm"
-                    />
-                    <div className="min-w-0">
-                      <p className="text-sm font-medium truncate">{member.username}</p>
-                      <p className="text-xs text-muted-foreground">{member.status}</p>
-                    </div>
-                  </div>
-                  {isCreator && member.id !== groupId && (
-                    <Button
-                      variant="ghost"
-                      size="icon"
-                      onClick={() => removeMemberMutation.mutate(member.id)}
-                      disabled={removeMemberMutation.isPending}
-                      data-testid={`button-remove-member-${member.id}`}
-                    >
-                      <Trash2 className="h-4 w-4 text-destructive" />
-                    </Button>
-                  )}
-                </div>
-              ))}
-            </div>
-          </div>
-
-          {isCreator && nonMembers.length > 0 && (
+          {membersLoading ? (
+            <p className="text-xs text-muted-foreground px-2">{t('messenger.loading')}</p>
+          ) : (
             <div>
               <p className="text-xs font-semibold text-muted-foreground mb-2 px-2">
-                {t("messenger.addMembers")}
+                {t("messenger.members")} ({members.length})
               </p>
               <div className="space-y-2">
-                {nonMembers.map((user) => (
+                {members.map((member) => (
                   <div
-                    key={user.id}
+                    key={member.id}
                     className="flex items-center justify-between p-2 rounded-lg hover:bg-muted transition-colors"
                   >
                     <div className="flex items-center gap-2 min-w-0">
                       <AvatarDisplay
-                        username={user.username}
-                        avatarUrl={user.avatarUrl}
+                        username={member.username}
+                        avatarUrl={member.avatarUrl}
                         size="sm"
                       />
-                      <p className="text-sm font-medium truncate">{user.username}</p>
+                      <div className="min-w-0">
+                        <p className="text-sm font-medium truncate">{member.username}</p>
+                        <p className="text-xs text-muted-foreground">{member.status}</p>
+                      </div>
                     </div>
-                    <Button
-                      variant="ghost"
-                      size="icon"
-                      onClick={() => addMemberMutation.mutate(user.id)}
-                      disabled={addMemberMutation.isPending}
-                      data-testid={`button-add-member-${user.id}`}
-                    >
-                      <Plus className="h-4 w-4" />
-                    </Button>
+                    {isCreator && (
+                      <Button
+                        variant="ghost"
+                        size="icon"
+                        onClick={() => removeMemberMutation.mutate(member.id)}
+                        disabled={removeMemberMutation.isPending}
+                        data-testid={`button-remove-member-${member.id}`}
+                      >
+                        <Trash2 className="h-4 w-4 text-destructive" />
+                      </Button>
+                    )}
                   </div>
                 ))}
               </div>
+            </div>
+          )}
+
+          {isCreator && (
+            <div>
+              <p className="text-xs font-semibold text-muted-foreground mb-2 px-2">
+                {t("messenger.addMembers")}
+              </p>
+              {usersLoading ? (
+                <p className="text-xs text-muted-foreground px-2">{t('messenger.loading')}</p>
+              ) : nonMembers.length > 0 ? (
+                <div className="space-y-2">
+                  {nonMembers.map((user) => (
+                    <div
+                      key={user.id}
+                      className="flex items-center justify-between p-2 rounded-lg hover:bg-muted transition-colors"
+                    >
+                      <div className="flex items-center gap-2 min-w-0">
+                        <AvatarDisplay
+                          username={user.username}
+                          avatarUrl={user.avatarUrl}
+                          size="sm"
+                        />
+                        <p className="text-sm font-medium truncate">{user.username}</p>
+                      </div>
+                      <Button
+                        variant="ghost"
+                        size="icon"
+                        onClick={() => addMemberMutation.mutate(user.id)}
+                        disabled={addMemberMutation.isPending}
+                        data-testid={`button-add-member-${user.id}`}
+                      >
+                        <Plus className="h-4 w-4" />
+                      </Button>
+                    </div>
+                  ))}
+                </div>
+              ) : (
+                <p className="text-xs text-muted-foreground px-2">{t('messenger.noUsers')}</p>
+              )}
             </div>
           )}
         </div>
