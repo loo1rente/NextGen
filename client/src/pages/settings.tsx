@@ -10,7 +10,9 @@ import { Input } from "@/components/ui/input";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
-import { Settings, Upload, X } from "lucide-react";
+import { ThemeToggle } from "@/components/theme-toggle";
+import { LanguageToggle } from "@/components/language-toggle";
+import { Settings, Upload, X, LogOut } from "lucide-react";
 import { useState, useRef } from "react";
 import type { User } from "@shared/schema";
 
@@ -112,7 +114,7 @@ export default function SettingsPage() {
         <p className="text-sm text-muted-foreground">Manage your account and preferences</p>
       </div>
 
-      <div className="flex-1 overflow-auto p-6">
+      <div className="flex-1 overflow-auto p-6 space-y-6">
         <Card className="max-w-md">
           <CardHeader>
             <CardTitle className="text-xl">Profile Settings</CardTitle>
@@ -206,6 +208,24 @@ export default function SettingsPage() {
                 </Button>
               </form>
             </Form>
+          </CardContent>
+        </Card>
+
+        <Card className="max-w-md">
+          <CardHeader>
+            <CardTitle className="text-xl">Preferences</CardTitle>
+            <CardDescription>Customize your experience</CardDescription>
+          </CardHeader>
+          <CardContent className="space-y-6">
+            <div className="space-y-2">
+              <FormLabel>Theme</FormLabel>
+              <ThemeToggle />
+            </div>
+            
+            <div className="space-y-2">
+              <FormLabel>Language</FormLabel>
+              <LanguageToggle />
+            </div>
           </CardContent>
         </Card>
       </div>
