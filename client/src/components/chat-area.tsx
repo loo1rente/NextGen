@@ -158,16 +158,16 @@ export function ChatArea({ friend, group, messages, onSendMessage, isSending }: 
         </div>
       </div>
 
-      <div className="flex-1 overflow-y-auto p-4 min-h-0" ref={scrollAreaRef}>
+      <div className="flex-1 overflow-y-auto overflow-x-hidden p-2 md:p-4 min-h-0 w-full" ref={scrollAreaRef}>
         {messages.length === 0 ? (
           <div className="flex items-center justify-center h-full">
-            <div className="text-center max-w-sm px-4">
+            <div className="text-center max-w-sm px-2 md:px-4">
               <p className="text-sm text-muted-foreground">{t('messenger.noMessages')}</p>
               <p className="text-xs text-muted-foreground mt-1">{t('messenger.noMessagesDesc')}</p>
             </div>
           </div>
         ) : (
-          <div className="space-y-4">
+          <div className="space-y-2 md:space-y-4 w-full">
             {messages.map((message, index) => {
               const isSent = message.senderId === user?.id;
               const showDate =
@@ -185,7 +185,7 @@ export function ChatArea({ friend, group, messages, onSendMessage, isSending }: 
                     </div>
                   )}
                   <div
-                    className={`flex ${isSent ? "justify-end" : "justify-start"} animate-fade-in gap-1 md:gap-2`}
+                    className={`flex ${isSent ? "justify-end" : "justify-start"} animate-fade-in gap-1 md:gap-2 w-full px-1`}
                     data-testid={`message-${message.id}`}
                   >
                     {!isSent && (
@@ -196,13 +196,13 @@ export function ChatArea({ friend, group, messages, onSendMessage, isSending }: 
                       />
                     )}
                     <div
-                      className={`max-w-[70%] md:max-w-[65%] px-3 md:px-4 py-1.5 md:py-2 rounded-3xl shadow-sm text-sm md:text-base ${
+                      className={`max-w-xs md:max-w-md px-3 md:px-4 py-1.5 md:py-2 rounded-3xl shadow-sm text-xs md:text-sm break-words ${
                         isSent
                           ? "bg-gradient-to-r from-primary to-primary/90 text-primary-foreground rounded-br-sm"
                           : "bg-card border border-card-border text-card-foreground rounded-bl-sm"
                       }`}
                     >
-                      <p className="text-sm leading-relaxed break-words">{message.content}</p>
+                      <p className="leading-relaxed break-words whitespace-pre-wrap">{message.content}</p>
                       <div className="flex items-center gap-1 mt-1 justify-end">
                         <span className="text-xs opacity-75 font-mono">
                           {format(new Date(message.createdAt), "HH:mm")}
@@ -218,14 +218,14 @@ export function ChatArea({ friend, group, messages, onSendMessage, isSending }: 
         )}
       </div>
 
-      <div className="border-t border-border px-2 md:px-3 py-1.5 md:py-2 bg-background shrink-0">
+      <div className="border-t border-border px-1.5 md:px-3 py-1 md:py-2 bg-background shrink-0 w-full overflow-hidden">
         <form onSubmit={handleSubmit} className="flex items-center gap-1 md:gap-2">
           <Input
             type="text"
             placeholder={t('messenger.typeMessage')}
             value={messageInput}
             onChange={(e) => setMessageInput(e.target.value)}
-            className="flex-1 rounded-full h-8 md:h-9 text-xs md:text-sm"
+            className="flex-1 rounded-full h-8 md:h-9 text-xs md:text-sm min-w-0"
             disabled={isSending}
             data-testid="input-message"
           />
