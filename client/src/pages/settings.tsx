@@ -10,6 +10,7 @@ import { Input } from "@/components/ui/input";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
+import { Label } from "@/components/ui/label";
 import { ThemeToggle } from "@/components/theme-toggle";
 import { LanguageToggle } from "@/components/language-toggle";
 import { Settings, Upload, X, LogOut } from "lucide-react";
@@ -218,12 +219,12 @@ export default function SettingsPage() {
           </CardHeader>
           <CardContent className="space-y-6">
             <div className="space-y-2">
-              <FormLabel>Theme</FormLabel>
+              <Label htmlFor="theme" className="text-sm font-medium">Theme</Label>
               <ThemeToggle />
             </div>
             
             <div className="space-y-2">
-              <FormLabel>Language</FormLabel>
+              <Label htmlFor="language" className="text-sm font-medium">Language</Label>
               <LanguageToggle />
             </div>
           </CardContent>
