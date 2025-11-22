@@ -81,8 +81,8 @@ export function ChatArea({ friend, group, messages, onSendMessage, isSending }: 
   }
 
   return (
-    <div className="flex-1 flex h-full bg-background">
-      <div className="flex flex-col flex-1">
+    <div className="flex-1 flex h-full bg-background flex-col">
+      <div className="flex flex-col flex-1 min-h-0">
         <div className="h-16 border-b border-border px-4 flex items-center justify-between shrink-0 bg-gradient-to-r from-background to-background/95">
           <div className="flex items-center gap-3">
             <div className="relative">
@@ -147,7 +147,7 @@ export function ChatArea({ friend, group, messages, onSendMessage, isSending }: 
           </div>
         </div>
 
-        <ScrollArea className="flex-1 p-4" ref={scrollAreaRef}>
+        <ScrollArea className="flex-1 p-4 min-h-0" ref={scrollAreaRef}>
           {messages.length === 0 ? (
             <div className="flex items-center justify-center h-full">
               <div className="text-center max-w-sm px-4">
@@ -207,14 +207,14 @@ export function ChatArea({ friend, group, messages, onSendMessage, isSending }: 
           )}
         </ScrollArea>
 
-        <div className="h-16 border-t border-border px-4 flex items-center gap-2 shrink-0">
-          <form onSubmit={handleSubmit} className="flex items-center gap-2 w-full">
+        <div className="border-t border-border px-3 py-2 bg-background shrink-0">
+          <form onSubmit={handleSubmit} className="flex items-center gap-2">
             <Input
               type="text"
               placeholder={t('messenger.typeMessage')}
               value={messageInput}
               onChange={(e) => setMessageInput(e.target.value)}
-              className="flex-1 rounded-full"
+              className="flex-1 rounded-full h-9 text-sm"
               disabled={isSending}
               data-testid="input-message"
             />
@@ -222,10 +222,10 @@ export function ChatArea({ friend, group, messages, onSendMessage, isSending }: 
               type="submit"
               size="icon"
               disabled={!messageInput.trim() || isSending}
-              className="rounded-full shrink-0"
+              className="rounded-full shrink-0 h-9 w-9"
               data-testid="button-send-message"
             >
-              <Send className="h-5 w-5" />
+              <Send className="h-4 w-4" />
             </Button>
           </form>
         </div>
