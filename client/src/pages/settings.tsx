@@ -16,6 +16,7 @@ import { LanguageToggle } from "@/components/language-toggle";
 import { Settings, Upload, X, LogOut } from "lucide-react";
 import { useState, useRef } from "react";
 import type { User } from "@shared/schema";
+import { useLanguage } from "@/lib/language-context";
 
 const profileSchema = z.object({
   displayName: z.string().max(50, "Display name must be at most 50 characters").optional().or(z.literal("")),
@@ -26,6 +27,7 @@ type ProfileFormData = z.infer<typeof profileSchema>;
 
 export default function SettingsPage() {
   const { user, setUser } = useAuth();
+  const { t } = useLanguage();
   const { toast } = useToast();
   const [previewAvatar, setPreviewAvatar] = useState<string | null>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
@@ -110,7 +112,7 @@ export default function SettingsPage() {
       <div className="p-6 border-b border-border">
         <div className="flex items-center gap-3 mb-2">
           <Settings className="h-6 w-6 text-primary" />
-          <h1 className="text-2xl font-semibold">Settings</h1>
+          <h1 className="text-2xl font-semibold">{t('settings.settings')}</h1>
         </div>
         <p className="text-sm text-muted-foreground">Manage your account and preferences</p>
       </div>
@@ -118,7 +120,7 @@ export default function SettingsPage() {
       <div className="flex-1 overflow-auto p-6 space-y-6">
         <Card className="max-w-md">
           <CardHeader>
-            <CardTitle className="text-xl">Profile Settings</CardTitle>
+            <CardTitle className="text-xl">{t('settings.profile')}</CardTitle>
             <CardDescription>Edit your profile information</CardDescription>
           </CardHeader>
           <CardContent>
@@ -168,7 +170,7 @@ export default function SettingsPage() {
                   name="displayName"
                   render={({ field }) => (
                     <FormItem>
-                      <FormLabel>Display Name</FormLabel>
+                      <FormLabel>{t('settings.displayName')}</FormLabel>
                       <FormControl>
                         <Input
                           {...field}
@@ -186,7 +188,7 @@ export default function SettingsPage() {
                   name="username"
                   render={({ field }) => (
                     <FormItem>
-                      <FormLabel>Username</FormLabel>
+                      <FormLabel>{t('settings.username')}</FormLabel>
                       <FormControl>
                         <Input
                           {...field}
@@ -205,7 +207,7 @@ export default function SettingsPage() {
                   disabled={updateProfileMutation.isPending || !form.formState.isDirty}
                   data-testid="button-update-profile"
                 >
-                  {updateProfileMutation.isPending ? "Saving..." : "Save Changes"}
+                  {updateProfileMutation.isPending ? "Saving..." : t('settings.save')}
                 </Button>
               </form>
             </Form>
@@ -219,12 +221,12 @@ export default function SettingsPage() {
           </CardHeader>
           <CardContent className="space-y-6">
             <div className="space-y-2">
-              <Label htmlFor="theme" className="text-sm font-medium">Theme</Label>
+              <Label htmlFor="theme" className="text-sm font-medium">{t('settings.theme')}</Label>
               <ThemeToggle />
             </div>
             
             <div className="space-y-2">
-              <Label htmlFor="language" className="text-sm font-medium">Language</Label>
+              <Label htmlFor="language" className="text-sm font-medium">{t('settings.language')}</Label>
               <LanguageToggle />
             </div>
           </CardContent>
