@@ -211,15 +211,19 @@ export default function MessengerPage() {
     }));
 
   const groupConversations = groupsWithMessages
-    .filter((gm) => gm.messages.length > 0)
     .sort((a, b) => {
+      if (a.messages.length === 0 && b.messages.length === 0) {
+        return new Date(b.group.createdAt).getTime() - new Date(a.group.createdAt).getTime();
+      }
+      if (a.messages.length === 0) return 1;
+      if (b.messages.length === 0) return -1;
       const aLastMsg = a.messages[a.messages.length - 1];
       const bLastMsg = b.messages[b.messages.length - 1];
       return new Date(bLastMsg.createdAt).getTime() - new Date(aLastMsg.createdAt).getTime();
     })
     .map((gm) => ({
       group: gm.group,
-      lastMessage: gm.messages[gm.messages.length - 1],
+      lastMessage: gm.messages.length > 0 ? gm.messages[gm.messages.length - 1] : undefined,
       unreadCount: gm.unreadCount,
     }));
 
