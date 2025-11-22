@@ -84,67 +84,67 @@ export function ChatArea({ friend, group, messages, onSendMessage, isSending }: 
     <div className="flex-1 flex flex-col bg-background min-h-0">
       <div className="h-16 border-b border-border px-4 flex items-center justify-between shrink-0 bg-gradient-to-r from-background to-background/95">
         <div className="flex items-center gap-3">
-            <div className="relative">
-              {friend ? (
-                <>
-                  <AvatarDisplay 
-                    username={friend.username} 
-                    avatarUrl={friend.avatarUrl}
-                    size="md"
-                  />
-                  {friend.status === "online" && (
-                    <div className="absolute bottom-0 right-0 h-2.5 w-2.5 rounded-full bg-status-online border-2 border-background" />
-                  )}
-                </>
-              ) : (
-                <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-primary/20">
-                  <span className="text-sm font-semibold text-primary">{group?.name.charAt(0).toUpperCase()}</span>
-                </div>
-              )}
-            </div>
-            <div>
-              <p className="font-semibold text-sm" data-testid="text-chat-name">{friend?.username || group?.name}</p>
-              <p className="text-xs text-muted-foreground">
-                {friend ? (friend.status === "online" ? t('messenger.online') : `${t('messenger.lastSeen')} ${formatDistanceToNow(new Date(friend.lastSeen || new Date()), { addSuffix: true })}`) : `${t('messenger.contacts')}`}
-              </p>
-            </div>
-          </div>
-          <div className="flex items-center gap-1">
-            <Button variant="ghost" size="icon" onClick={handleVoiceCall} data-testid="button-voice-call" title="Voice call">
-              <Phone className="h-5 w-5" />
-            </Button>
-            <Button variant="ghost" size="icon" onClick={handleVideoCall} data-testid="button-video-call" title="Video call">
-              <Video className="h-5 w-5" />
-            </Button>
-            {group && (
+          <div className="relative">
+            {friend ? (
               <>
-                <Button
-                  variant="ghost"
-                  size="icon"
-                  onClick={() => setShowGroupPanel(true)}
-                  data-testid="button-add-members"
-                  title="Add members"
-                >
-                  <UserPlus className="h-5 w-5" />
-                </Button>
-                <Button
-                  variant="ghost"
-                  size="icon"
-                  onClick={() => setShowGroupPanel(!showGroupPanel)}
-                  data-testid="button-group-info"
-                  title="Group info"
-                >
-                  <MoreVertical className="h-5 w-5" />
-                </Button>
+                <AvatarDisplay 
+                  username={friend.username} 
+                  avatarUrl={friend.avatarUrl}
+                  size="md"
+                />
+                {friend.status === "online" && (
+                  <div className="absolute bottom-0 right-0 h-2.5 w-2.5 rounded-full bg-status-online border-2 border-background" />
+                )}
               </>
+            ) : (
+              <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-primary/20">
+                <span className="text-sm font-semibold text-primary">{group?.name.charAt(0).toUpperCase()}</span>
+              </div>
             )}
-            {!group && (
-              <Button variant="ghost" size="icon" data-testid="button-chat-menu">
-                <MoreVertical className="h-5 w-5" />
-              </Button>
-            )}
+          </div>
+          <div>
+            <p className="font-semibold text-sm" data-testid="text-chat-name">{friend?.username || group?.name}</p>
+            <p className="text-xs text-muted-foreground">
+              {friend ? (friend.status === "online" ? t('messenger.online') : `${t('messenger.lastSeen')} ${formatDistanceToNow(new Date(friend.lastSeen || new Date()), { addSuffix: true })}`) : `${t('messenger.contacts')}`}
+            </p>
           </div>
         </div>
+        <div className="flex items-center gap-1">
+          <Button variant="ghost" size="icon" onClick={handleVoiceCall} data-testid="button-voice-call" title="Voice call">
+            <Phone className="h-5 w-5" />
+          </Button>
+          <Button variant="ghost" size="icon" onClick={handleVideoCall} data-testid="button-video-call" title="Video call">
+            <Video className="h-5 w-5" />
+          </Button>
+          {group && (
+            <>
+              <Button
+                variant="ghost"
+                size="icon"
+                onClick={() => setShowGroupPanel(true)}
+                data-testid="button-add-members"
+                title="Add members"
+              >
+                <UserPlus className="h-5 w-5" />
+              </Button>
+              <Button
+                variant="ghost"
+                size="icon"
+                onClick={() => setShowGroupPanel(!showGroupPanel)}
+                data-testid="button-group-info"
+                title="Group info"
+              >
+                <MoreVertical className="h-5 w-5" />
+              </Button>
+            </>
+          )}
+          {!group && (
+            <Button variant="ghost" size="icon" data-testid="button-chat-menu">
+              <MoreVertical className="h-5 w-5" />
+            </Button>
+          )}
+        </div>
+      </div>
 
       <div className="flex-1 overflow-y-auto p-4 min-h-0" ref={scrollAreaRef}>
         {messages.length === 0 ? (
