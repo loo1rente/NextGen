@@ -1,0 +1,163 @@
+import { useState, useEffect, useRef } from "react";
+import { Avatar, AvatarFallback } from "@/components/ui/avatar";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { ScrollArea } from "@/components/ui/scroll-area";
+import { Send, MoreVertical } from "lucide-react";
+import { formatDistanceToNow, format } from "date-fns";
+import { useAuth } from "@/lib/auth-context";
+import type { User, Message } from "@shared/schema";
+
+interface ChatAreaProps {
+  friend: User | null;
+  messages: Message[];
+  onSendMessage: (content: string) => void;
+  isSending: boolean;
+}
+
+export function ChatArea({ friend, messages, onSendMessage, isSending }: ChatAreaProps) {
+  const { user } = useAuth();
+  const [messageInput, setMessageInput] = useState("");
+  const scrollAreaRef = useRef<HTMLDivElement>(null);
+  const messagesEndRef = useRef<HTMLDivElement>(null);
+
+  const scrollToBottom = () => {
+    messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
+  };
+
+  useEffect(() => {
+    scrollToBottom();
+  }, [messages]);
+
+  const handleSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (messageInput.trim() && !isSending) {
+      onSendMessage(messageInput.trim());
+      setMessageInput("");
+    }
+  };
+
+  const getInitials = (username: string) => {
+    return username.slice(0, 2).toUpperCase();
+  };
+
+  const getAvatarUrl = (username: string) => {
+    return `https://ui-avatars.com/api/?name=${encodeURIComponent(username)}&background=0D8ABC&color=fff&size=128`;
+  };
+
+  if (!friend) {
+    return (
+      <div className="flex-1 flex items-center justify-center bg-background">
+        <div className="text-center max-w-sm px-4">
+          <p className="text-lg font-semibold mb-2">Select a conversation</p>
+          <p className="text-sm text-muted-foreground">
+            Choose a friend from your conversations to start chatting
+          </p>
+        </div>
+      </div>
+    );
+  }
+
+  return (
+    <div className="flex-1 flex flex-col h-full bg-background">
+      <div className="h-16 border-b border-border px-4 flex items-center justify-between shrink-0">
+        <div className="flex items-center gap-3">
+          <div className="relative">
+            <Avatar className="h-9 w-9">
+              <img src={getAvatarUrl(friend.username)} alt={friend.username} />
+              <AvatarFallback>{getInitials(friend.username)}</AvatarFallback>
+            </Avatar>
+            {friend.status === "online" && (
+              <div className="absolute bottom-0 right-0 h-2.5 w-2.5 rounded-full bg-status-online border-2 border-background" />
+            )}
+          </div>
+          <div>
+            <p className="font-semibold text-sm" data-testid="text-chat-friend-name">{friend.username}</p>
+            <p className="text-xs text-muted-foreground">
+              {friend.status === "online" ? "Online" : `Last seen ${formatDistanceToNow(new Date(friend.lastSeen || new Date()), { addSuffix: true })}`}
+            </p>
+          </div>
+        </div>
+        <Button variant="ghost" size="icon" data-testid="button-chat-menu">
+          <MoreVertical className="h-5 w-5" />
+        </Button>
+      </div>
+
+      <ScrollArea className="flex-1 p-4" ref={scrollAreaRef}>
+        {messages.length === 0 ? (
+          <div className="flex items-center justify-center h-full">
+            <div className="text-center max-w-sm px-4">
+              <p className="text-sm text-muted-foreground">No messages yet</p>
+              <p className="text-xs text-muted-foreground mt-1">Send a message to start the conversation</p>
+            </div>
+          </div>
+        ) : (
+          <div className="space-y-4">
+            {messages.map((message, index) => {
+              const isSent = message.senderId === user?.id;
+              const showDate =
+                index === 0 ||
+                new Date(messages[index - 1].createdAt).toDateString() !==
+                  new Date(message.createdAt).toDateString();
+
+              return (
+                <div key={message.id}>
+                  {showDate && (
+                    <div className="flex justify-center mb-4">
+                      <span className="text-xs text-muted-foreground font-mono px-3 py-1 rounded-full bg-muted">
+                        {format(new Date(message.createdAt), "MMMM d, yyyy")}
+                      </span>
+                    </div>
+                  )}
+                  <div
+                    className={`flex ${isSent ? "justify-end" : "justify-start"}`}
+                    data-testid={`message-${message.id}`}
+                  >
+                    <div
+                      className={`max-w-[65%] px-4 py-2 rounded-2xl ${
+                        isSent
+                          ? "bg-primary text-primary-foreground rounded-br-sm"
+                          : "bg-card text-card-foreground rounded-bl-sm"
+                      }`}
+                    >
+                      <p className="text-sm leading-relaxed break-words">{message.content}</p>
+                      <div className="flex items-center gap-1 mt-1 justify-end">
+                        <span className="text-xs opacity-75 font-mono">
+                          {format(new Date(message.createdAt), "HH:mm")}
+                        </span>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              );
+            })}
+            <div ref={messagesEndRef} />
+          </div>
+        )}
+      </ScrollArea>
+
+      <div className="h-16 border-t border-border px-4 flex items-center gap-2 shrink-0">
+        <form onSubmit={handleSubmit} className="flex items-center gap-2 w-full">
+          <Input
+            type="text"
+            placeholder="Type a message..."
+            value={messageInput}
+            onChange={(e) => setMessageInput(e.target.value)}
+            className="flex-1 rounded-full"
+            disabled={isSending}
+            data-testid="input-message"
+          />
+          <Button
+            type="submit"
+            size="icon"
+            disabled={!messageInput.trim() || isSending}
+            className="rounded-full shrink-0"
+            data-testid="button-send-message"
+          >
+            <Send className="h-5 w-5" />
+          </Button>
+        </form>
+      </div>
+    </div>
+  );
+}
