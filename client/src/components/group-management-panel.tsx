@@ -3,6 +3,7 @@ import { useQuery, useMutation } from "@tanstack/react-query";
 import { Button } from "@/components/ui/button";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Badge } from "@/components/ui/badge";
+import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogHeader, AlertDialogTitle } from "@/components/ui/alert-dialog";
 import { apiRequest, queryClient } from "@/lib/queryClient";
 import { useToast } from "@/hooks/use-toast";
 import { useLanguage } from "@/lib/language-context";
@@ -26,6 +27,7 @@ export function GroupManagementPanel({
   const { t } = useLanguage();
   const { toast } = useToast();
   const [selectedMembersToAdd, setSelectedMembersToAdd] = useState<string[]>([]);
+  const [kickConfirmation, setKickConfirmation] = useState<{ memberId: string; memberName: string } | null>(null);
 
   const { data: members = [], isLoading: membersLoading, error: membersError } = useQuery<User[]>({
     queryKey: ["/api/groups", groupId, "members"],
@@ -52,9 +54,10 @@ export function GroupManagementPanel({
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["/api/groups", groupId, "members"] });
+      setKickConfirmation(null);
       toast({
         title: "Success",
-        description: "Member removed",
+        description: "Member kicked from group",
       });
     },
     onError: (error: Error) => {
@@ -140,9 +143,10 @@ export function GroupManagementPanel({
                       <Button
                         variant="ghost"
                         size="icon"
-                        onClick={() => removeMemberMutation.mutate(member.id)}
+                        onClick={() => setKickConfirmation({ memberId: member.id, memberName: member.username })}
                         disabled={removeMemberMutation.isPending}
                         data-testid={`button-remove-member-${member.id}`}
+                        title="Kick member from group"
                       >
                         <Trash2 className="h-4 w-4 text-destructive" />
                       </Button>
@@ -198,6 +202,29 @@ export function GroupManagementPanel({
           )}
         </div>
       </ScrollArea>
+
+      {kickConfirmation && (
+        <AlertDialog open={!!kickConfirmation} onOpenChange={(open) => !open && setKickConfirmation(null)}>
+          <AlertDialogContent>
+            <AlertDialogHeader>
+              <AlertDialogTitle>Kick member from group?</AlertDialogTitle>
+              <AlertDialogDescription>
+                Are you sure you want to kick {kickConfirmation.memberName} from {groupName}? They will no longer have access to the group.
+              </AlertDialogDescription>
+            </AlertDialogHeader>
+            <div className="flex justify-end gap-2">
+              <AlertDialogCancel>Cancel</AlertDialogCancel>
+              <AlertDialogAction
+                onClick={() => removeMemberMutation.mutate(kickConfirmation.memberId)}
+                disabled={removeMemberMutation.isPending}
+                className="bg-destructive hover:bg-destructive/90"
+              >
+                Kick member
+              </AlertDialogAction>
+            </div>
+          </AlertDialogContent>
+        </AlertDialog>
+      )}
     </div>
   );
 }
