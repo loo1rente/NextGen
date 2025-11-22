@@ -39,19 +39,9 @@ export function GroupManagementPanel({
   const { data: allUsers = [], isLoading: usersLoading, error: usersError } = useQuery<User[]>({
     queryKey: ["/api/users/search", "all"],
     queryFn: async () => {
-      try {
-        const res = await apiRequest("GET", "/api/users/search?q=", {});
-        if (!res.ok) {
-          const errText = await res.text();
-          throw new Error(errText || "Failed to fetch users");
-        }
-        return res.json();
-      } catch (err: any) {
-        console.error("Error fetching users:", err);
-        throw err;
-      }
+      const res = await apiRequest("GET", "/api/users/search?q=");
+      return res.json();
     },
-    retry: 2,
   });
 
   const removeMemberMutation = useMutation({
