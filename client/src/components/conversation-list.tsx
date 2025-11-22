@@ -59,7 +59,7 @@ export function ConversationList({
   ];
 
   return (
-    <div className="w-full lg:w-80 border-r border-border flex flex-col h-full bg-card">
+    <div className="w-80 border-r border-border flex flex-col h-full bg-card shrink-0">
       <div className="p-3 border-b border-card-border space-y-3">
         <div className="flex items-center gap-2">
           <div className="relative flex-1">
