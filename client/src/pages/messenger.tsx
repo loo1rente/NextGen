@@ -235,7 +235,10 @@ export default function MessengerPage() {
   const selectedGroup = selectedGroupData?.group || null;
   const selectedGroupMessages = selectedGroupData?.messages || [];
 
-  const selectedMessages = selectedFriendId ? selectedFriendMessages : selectedGroupMessages;
+  // Ensure messages match the currently selected conversation
+  const selectedMessages = selectedFriendId 
+    ? selectedFriendMessages.filter(m => (m.senderId === selectedFriendId || m.receiverId === selectedFriendId) && !m.groupId)
+    : selectedGroupMessages.filter(m => m.groupId === selectedGroupId);
 
   const handleSendMessage = (content: string) => {
     if (user) {

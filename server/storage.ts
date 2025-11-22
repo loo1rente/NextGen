@@ -61,7 +61,16 @@ export class DatabaseStorage implements IStorage {
       .where(eq(users.id, id));
   }
 
-  async searchUsers(query: string, limit: number = 10): Promise<User[]> {
+  async searchUsers(query: string, limit: number = 100): Promise<User[]> {
+    // If query is empty, return all users
+    if (!query || query.length === 0) {
+      const results = await db
+        .select()
+        .from(users)
+        .limit(limit);
+      return results;
+    }
+    
     const escapedQuery = query.replace(/[_%\\]/g, '\\$&');
     const results = await db
       .select()

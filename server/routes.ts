@@ -86,8 +86,12 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.get("/api/users/search", async (req, res) => {
     try {
       const query = req.query.q as string;
-      if (!query || query.length < 2) {
-        return res.json([]);
+      
+      // If query is empty, return all users
+      if (!query || query.length === 0) {
+        const users = await storage.searchUsers("");
+        const usersWithoutPasswords = users.map(({ password, ...user }) => user);
+        return res.json(usersWithoutPasswords);
       }
 
       const users = await storage.searchUsers(query);
