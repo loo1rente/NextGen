@@ -222,7 +222,7 @@ export class DatabaseStorage implements IStorage {
     const groupIds = userGroups.map(gm => gm.groupId);
     if (groupIds.length === 0) return [];
     
-    const results = await db.select().from(groups).where(sql`${groups.id} = ANY(${groupIds})`);
+    const results = await db.select().from(groups).where(sql`${groups.id} = ANY(ARRAY[${sql.join(groupIds.map(id => sql`${id}`), sql`,`)}])`);
     return results;
   }
 
