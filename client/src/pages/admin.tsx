@@ -61,7 +61,8 @@ export default function AdminPage() {
     return username.slice(0, 2).toUpperCase();
   };
 
-  const getAvatarUrl = (username: string) => {
+  const getAvatarUrl = (avatarUrl: string | null | undefined, username: string) => {
+    if (avatarUrl) return avatarUrl;
     return `https://ui-avatars.com/api/?name=${encodeURIComponent(username)}&background=0D8ABC&color=fff&size=128`;
   };
 
@@ -86,7 +87,7 @@ export default function AdminPage() {
               <Card key={user.id} className="p-4">
                 <div className="flex items-center gap-4">
                   <Avatar className="h-12 w-12">
-                    <img src={getAvatarUrl(user.username)} alt={user.username} />
+                    <img src={getAvatarUrl(user.avatarUrl, user.username)} alt={user.username} />
                     <AvatarFallback>{getInitials(user.username)}</AvatarFallback>
                   </Avatar>
 

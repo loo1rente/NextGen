@@ -276,7 +276,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return res.status(401).json({ message: "Not authenticated" });
       }
 
-      const { displayName, username } = req.body;
+      const { displayName, username, avatarUrl } = req.body;
       if (!username) {
         return res.status(400).json({ message: "Username is required" });
       }
@@ -286,7 +286,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return res.status(400).json({ message: "Username already taken" });
       }
 
-      const user = await storage.updateUserProfile(userId, displayName || null, username);
+      const user = await storage.updateUserProfile(userId, displayName || null, username, avatarUrl);
       const { password: _, ...userWithoutPassword } = user;
       res.json(userWithoutPassword);
     } catch (error: any) {

@@ -18,7 +18,8 @@ export function UserSidebar({ activeView, onViewChange, pendingRequestsCount }: 
     return username.slice(0, 2).toUpperCase();
   };
 
-  const getAvatarUrl = (username: string) => {
+  const getAvatarUrl = (avatarUrl: string | null | undefined, username: string) => {
+    if (avatarUrl) return avatarUrl;
     return `https://ui-avatars.com/api/?name=${encodeURIComponent(username)}&background=0D8ABC&color=fff&size=128`;
   };
 
@@ -28,7 +29,7 @@ export function UserSidebar({ activeView, onViewChange, pendingRequestsCount }: 
         <div className="flex flex-col lg:flex-row items-center gap-3">
           <div className="relative">
             <Avatar className="h-12 w-12">
-              <img src={getAvatarUrl(user?.username || "")} alt={user?.username} />
+              <img src={getAvatarUrl(user?.avatarUrl, user?.username || "")} alt={user?.username} />
               <AvatarFallback>{getInitials(user?.username || "")}</AvatarFallback>
             </Avatar>
             <div className="absolute bottom-0 right-0 h-3 w-3 rounded-full bg-status-online border-2 border-sidebar" />
