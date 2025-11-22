@@ -235,12 +235,53 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return res.status(401).json({ message: "Not authenticated" });
       }
 
-      const { receiverId, content } = req.body;
-      if (!receiverId || !content) {
-        return res.status(400).json({ message: "Receiver ID and content are required" });
+      const { receiverId, groupId, content } = req.body;
+      if (!content) {
+        return res.status(400).json({ message: "Content is required" });
       }
 
-      const areFriends = await storage.getFriendship(userId, receiverId);
+      if (!receiverId && !groupId) {
+        return res.status(400).json({ message: "Either receiver ID or group ID is required" });
+      }
+
+      // Handle group messages
+      if (groupId) {
+        const groupMembers = await storage.getGroupMembers(groupId);
+        const isMember = groupMembers.some(gm => gm.userId === userId);
+        if (!isMember) {
+          return res.status(403).json({ message: "You are not a member of this group" });
+        }
+
+        const message = await storage.createMessage({
+          senderId: userId,
+          groupId,
+          content,
+        });
+
+        // Broadcast to all group members
+        const allMembers = await storage.getGroupMembers(groupId);
+        const sender = await storage.getUser(userId);
+        
+        allMembers.forEach(member => {
+          const memberWs = connectedUsers.get(member.userId);
+          if (memberWs && memberWs.readyState === WebSocket.OPEN) {
+            memberWs.send(JSON.stringify({
+              type: "new_message",
+              message,
+              senderId: userId,
+              senderUsername: sender?.username,
+              groupId,
+              content,
+            }));
+          }
+        });
+
+        res.json(message);
+        return;
+      }
+
+      // Handle direct messages
+      const areFriends = await storage.getFriendship(userId, receiverId!);
       if (!areFriends || areFriends.status !== "accepted") {
         return res.status(403).json({ message: "You can only message friends" });
       }
@@ -251,7 +292,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         content,
       });
 
-      const receiverWs = connectedUsers.get(receiverId);
+      const receiverWs = connectedUsers.get(receiverId!);
       if (receiverWs && receiverWs.readyState === WebSocket.OPEN) {
         const sender = await storage.getUser(userId);
         receiverWs.send(JSON.stringify({
@@ -422,6 +463,27 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  app.get("/api/groups/:groupId/members-info", async (req, res) => {
+    try {
+      const { groupId } = req.params;
+      const members = await storage.getGroupMembers(groupId);
+      const memberIds = members.map(m => m.userId);
+      
+      const memberUsers = await Promise.all(
+        memberIds.map(async (id) => {
+          const user = await storage.getUser(id);
+          if (!user) return null;
+          const { password, ...userWithoutPassword } = user;
+          return userWithoutPassword;
+        })
+      );
+
+      res.json(memberUsers.filter(m => m !== null));
+    } catch (error: any) {
+      res.status(400).json({ message: error.message || "Failed to fetch group members" });
+    }
+  });
+
   app.get("/api/groups/:groupId/messages", async (req, res) => {
     try {
       const { groupId } = req.params;
@@ -449,6 +511,31 @@ export async function registerRoutes(app: Express): Promise<Server> {
       res.json(member);
     } catch (error: any) {
       res.status(400).json({ message: error.message || "Failed to add member" });
+    }
+  });
+
+  app.delete("/api/groups/:groupId/members/:memberId", async (req, res) => {
+    try {
+      const userId = (req.session as any).userId;
+      if (!userId) {
+        return res.status(401).json({ message: "Not authenticated" });
+      }
+
+      const { groupId, memberId } = req.params;
+      const group = await storage.getGroup(groupId);
+      if (!group) {
+        return res.status(404).json({ message: "Group not found" });
+      }
+
+      // Only group creator can remove members
+      if (group.createdBy !== userId) {
+        return res.status(403).json({ message: "Only group creator can remove members" });
+      }
+
+      await storage.removeGroupMember(groupId, memberId);
+      res.json({ message: "Member removed" });
+    } catch (error: any) {
+      res.status(400).json({ message: error.message || "Failed to remove member" });
     }
   });
 
