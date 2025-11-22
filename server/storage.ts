@@ -135,7 +135,8 @@ export class DatabaseStorage implements IStorage {
   }
 
   async getMessages(userId: string): Promise<Message[]> {
-    const results = await db
+    // Get direct messages with user
+    const directMessages = await db
       .select()
       .from(messages)
       .where(
@@ -143,9 +144,23 @@ export class DatabaseStorage implements IStorage {
           eq(messages.senderId, userId),
           eq(messages.receiverId, userId)
         )
-      )
-      .orderBy(desc(messages.createdAt));
-    return results;
+      );
+
+    // Get group messages from groups user is member of
+    const userGroups = await db.select().from(groupMembers).where(eq(groupMembers.userId, userId));
+    const groupIds = userGroups.map(gm => gm.groupId);
+    
+    let groupMessages: Message[] = [];
+    if (groupIds.length > 0) {
+      groupMessages = await db
+        .select()
+        .from(messages)
+        .where(sql`${messages.groupId} = ANY(ARRAY[${sql.join(groupIds.map(id => sql`${id}`), sql`,`)}])`);
+    }
+
+    // Combine and sort by date
+    const allMessages = [...directMessages, ...groupMessages];
+    return allMessages.sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime());
   }
 
   async createMessage(insertMessage: InsertMessage): Promise<Message> {
