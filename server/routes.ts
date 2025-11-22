@@ -356,6 +356,126 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  app.get("/api/messages/search", async (req, res) => {
+    try {
+      const userId = (req.session as any).userId;
+      if (!userId) {
+        return res.status(401).json({ message: "Not authenticated" });
+      }
+
+      const { q } = req.query;
+      if (!q || typeof q !== "string") {
+        return res.status(400).json({ message: "Search query required" });
+      }
+
+      const results = await storage.searchMessages(q, userId, 50);
+      res.json(results);
+    } catch (error: any) {
+      res.status(400).json({ message: error.message || "Search failed" });
+    }
+  });
+
+  app.post("/api/groups", async (req, res) => {
+    try {
+      const userId = (req.session as any).userId;
+      if (!userId) {
+        return res.status(401).json({ message: "Not authenticated" });
+      }
+
+      const { name, description } = req.body;
+      if (!name) {
+        return res.status(400).json({ message: "Group name required" });
+      }
+
+      const group = await storage.createGroup({ name, description, createdBy: userId });
+      await storage.addGroupMember(group.id, userId);
+      res.json(group);
+    } catch (error: any) {
+      res.status(400).json({ message: error.message || "Failed to create group" });
+    }
+  });
+
+  app.get("/api/groups", async (req, res) => {
+    try {
+      const userId = (req.session as any).userId;
+      if (!userId) {
+        return res.status(401).json({ message: "Not authenticated" });
+      }
+
+      const groups = await storage.getGroups(userId);
+      res.json(groups);
+    } catch (error: any) {
+      res.status(400).json({ message: error.message || "Failed to fetch groups" });
+    }
+  });
+
+  app.get("/api/groups/:groupId", async (req, res) => {
+    try {
+      const { groupId } = req.params;
+      const group = await storage.getGroup(groupId);
+      if (!group) {
+        return res.status(404).json({ message: "Group not found" });
+      }
+      res.json(group);
+    } catch (error: any) {
+      res.status(400).json({ message: error.message || "Failed to fetch group" });
+    }
+  });
+
+  app.get("/api/groups/:groupId/messages", async (req, res) => {
+    try {
+      const { groupId } = req.params;
+      const messages = await storage.getGroupMessages(groupId);
+      res.json(messages);
+    } catch (error: any) {
+      res.status(400).json({ message: error.message || "Failed to fetch messages" });
+    }
+  });
+
+  app.post("/api/groups/:groupId/members", async (req, res) => {
+    try {
+      const userId = (req.session as any).userId;
+      if (!userId) {
+        return res.status(401).json({ message: "Not authenticated" });
+      }
+
+      const { groupId } = req.params;
+      const { memberId } = req.body;
+      if (!memberId) {
+        return res.status(400).json({ message: "Member ID required" });
+      }
+
+      const member = await storage.addGroupMember(groupId, memberId);
+      res.json(member);
+    } catch (error: any) {
+      res.status(400).json({ message: error.message || "Failed to add member" });
+    }
+  });
+
+  app.get("/api/notifications", async (req, res) => {
+    try {
+      const userId = (req.session as any).userId;
+      if (!userId) {
+        return res.status(401).json({ message: "Not authenticated" });
+      }
+
+      const notifications = await storage.getNotifications(userId);
+      res.json(notifications);
+    } catch (error: any) {
+      res.status(400).json({ message: error.message || "Failed to fetch notifications" });
+    }
+  });
+
+  app.post("/api/notifications/:notificationId/read", async (req, res) => {
+    try {
+      const { notificationId } = req.params;
+      const notification = await storage.markNotificationAsRead(notificationId);
+      res.json(notification);
+    } catch (error: any) {
+      res.status(400).json({ message: error.message || "Failed to mark notification as read" });
+    }
+  });
+
   const httpServer = createServer(app);
 
   const wss = new WebSocketServer({ server: httpServer, path: '/ws' });
