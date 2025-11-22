@@ -6,6 +6,7 @@ import { z } from "zod";
 import { useMutation } from "@tanstack/react-query";
 import { apiRequest } from "@/lib/queryClient";
 import { useAuth } from "@/lib/auth-context";
+import { useLanguage } from "@/lib/language-context";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
@@ -26,6 +27,7 @@ export default function AuthPage() {
   const [isLogin, setIsLogin] = useState(true);
   const { setUser } = useAuth();
   const { toast } = useToast();
+  const { t } = useLanguage();
 
   const form = useForm<AuthFormData>({
     resolver: zodResolver(authSchema),
@@ -74,7 +76,7 @@ export default function AuthPage() {
           <div>
             <CardTitle className="text-2xl font-semibold">NextGen Messenger</CardTitle>
             <CardDescription className="text-base mt-2">
-              {isLogin ? "Welcome back! Sign in to continue." : "Create an account to get started."}
+              {isLogin ? "Welcome back! Sign in to continue." : t('auth.dontHaveAccount')}
             </CardDescription>
           </div>
         </CardHeader>
@@ -86,7 +88,7 @@ export default function AuthPage() {
                 name="username"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>Username</FormLabel>
+                    <FormLabel>{t('auth.username')}</FormLabel>
                     <FormControl>
                       <Input
                         {...field}
