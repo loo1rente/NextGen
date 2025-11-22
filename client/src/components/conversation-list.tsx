@@ -59,7 +59,7 @@ export function ConversationList({
   ];
 
   return (
-    <div className="hidden md:flex md:w-72 lg:w-80 border-r border-border flex-col h-full bg-card shrink-0">
+    <div className="w-80 border-r border-border flex flex-col h-full bg-card shrink-0">
       <div className="p-3 border-b border-card-border space-y-3">
         <div className="flex items-center gap-2">
           <div className="relative flex-1">
@@ -112,7 +112,7 @@ export function ConversationList({
                   <button
                     key={conv.friend.id}
                     onClick={() => onSelectConversation(conv.friend.id)}
-                    className={`w-full p-2 md:p-3 rounded-lg text-left transition-all hover-elevate active-elevate-2 ${
+                    className={`w-full p-3 rounded-lg text-left transition-all hover-elevate active-elevate-2 ${
                       isSelected ? "bg-primary/10 border border-primary/20" : "hover:bg-muted"
                     }`}
                     data-testid={`button-conversation-${conv.friend.id}`}
@@ -166,7 +166,7 @@ export function ConversationList({
                   <button
                     key={conv.group.id}
                     onClick={() => onSelectGroup(conv.group.id)}
-                    className={`w-full p-2 md:p-3 rounded-lg text-left transition-all hover-elevate active-elevate-2 ${
+                    className={`w-full p-3 rounded-lg text-left transition-all hover-elevate active-elevate-2 ${
                       isSelected ? "bg-primary/10 border border-primary/20" : "hover:bg-muted"
                     }`}
                     data-testid={`button-group-${conv.group.id}`}

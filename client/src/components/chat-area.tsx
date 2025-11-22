@@ -2,7 +2,7 @@ import { useState, useEffect, useRef } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { ScrollArea } from "@/components/ui/scroll-area";
-import { Send, MoreVertical, Phone, Video, UserPlus, Info } from "lucide-react";
+import { Send, MoreVertical, Phone, Video, UserPlus } from "lucide-react";
 import { formatDistanceToNow, format } from "date-fns";
 import { useAuth } from "@/lib/auth-context";
 import { useLanguage } from "@/lib/language-context";
@@ -81,8 +81,8 @@ export function ChatArea({ friend, group, messages, onSendMessage, isSending }: 
   }
 
   return (
-    <div className="flex-1 flex flex-col bg-background min-h-0 w-full">
-      <div className="h-16 border-b border-border px-2 md:px-4 flex items-center justify-between shrink-0 bg-gradient-to-r from-background to-background/95">
+    <div className="flex-1 flex flex-col bg-background min-h-0">
+      <div className="h-16 border-b border-border px-4 flex items-center justify-between shrink-0 bg-gradient-to-r from-background to-background/95">
         <div className="flex items-center gap-3">
           <div className="relative">
             {friend ? (
@@ -110,18 +110,6 @@ export function ChatArea({ friend, group, messages, onSendMessage, isSending }: 
           </div>
         </div>
         <div className="flex items-center gap-1">
-          {group && (
-            <Button 
-              variant="ghost" 
-              size="icon" 
-              onClick={() => setShowGroupPanel(true)} 
-              data-testid="button-group-info"
-              title="Group info"
-              className="lg:hidden"
-            >
-              <Info className="h-5 w-5" />
-            </Button>
-          )}
           <Button variant="ghost" size="icon" onClick={handleVoiceCall} data-testid="button-voice-call" title="Voice call">
             <Phone className="h-5 w-5" />
           </Button>
@@ -158,16 +146,16 @@ export function ChatArea({ friend, group, messages, onSendMessage, isSending }: 
         </div>
       </div>
 
-      <div className="flex-1 overflow-y-auto overflow-x-hidden p-2 md:p-4 min-h-0 w-full" ref={scrollAreaRef}>
+      <div className="flex-1 overflow-y-auto p-4 min-h-0" ref={scrollAreaRef}>
         {messages.length === 0 ? (
           <div className="flex items-center justify-center h-full">
-            <div className="text-center max-w-sm px-2 md:px-4">
+            <div className="text-center max-w-sm px-4">
               <p className="text-sm text-muted-foreground">{t('messenger.noMessages')}</p>
               <p className="text-xs text-muted-foreground mt-1">{t('messenger.noMessagesDesc')}</p>
             </div>
           </div>
         ) : (
-          <div className="space-y-2 md:space-y-4 w-full">
+          <div className="space-y-4">
             {messages.map((message, index) => {
               const isSent = message.senderId === user?.id;
               const showDate =
@@ -185,7 +173,7 @@ export function ChatArea({ friend, group, messages, onSendMessage, isSending }: 
                     </div>
                   )}
                   <div
-                    className={`flex ${isSent ? "justify-end" : "justify-start"} animate-fade-in gap-1 md:gap-2 w-full px-1`}
+                    className={`flex ${isSent ? "justify-end" : "justify-start"} animate-fade-in gap-2`}
                     data-testid={`message-${message.id}`}
                   >
                     {!isSent && (
@@ -196,13 +184,13 @@ export function ChatArea({ friend, group, messages, onSendMessage, isSending }: 
                       />
                     )}
                     <div
-                      className={`max-w-xs md:max-w-md px-3 md:px-4 py-1.5 md:py-2 rounded-3xl shadow-sm text-xs md:text-sm break-words ${
+                      className={`max-w-[65%] px-4 py-2 rounded-3xl shadow-sm ${
                         isSent
                           ? "bg-gradient-to-r from-primary to-primary/90 text-primary-foreground rounded-br-sm"
                           : "bg-card border border-card-border text-card-foreground rounded-bl-sm"
                       }`}
                     >
-                      <p className="leading-relaxed break-words whitespace-pre-wrap">{message.content}</p>
+                      <p className="text-sm leading-relaxed break-words">{message.content}</p>
                       <div className="flex items-center gap-1 mt-1 justify-end">
                         <span className="text-xs opacity-75 font-mono">
                           {format(new Date(message.createdAt), "HH:mm")}
@@ -218,14 +206,14 @@ export function ChatArea({ friend, group, messages, onSendMessage, isSending }: 
         )}
       </div>
 
-      <div className="border-t border-border px-1.5 md:px-3 py-1 md:py-2 bg-background shrink-0 w-full overflow-hidden">
-        <form onSubmit={handleSubmit} className="flex items-center gap-1 md:gap-2">
+      <div className="border-t border-border px-3 py-2 bg-background shrink-0">
+        <form onSubmit={handleSubmit} className="flex items-center gap-2">
           <Input
             type="text"
             placeholder={t('messenger.typeMessage')}
             value={messageInput}
             onChange={(e) => setMessageInput(e.target.value)}
-            className="flex-1 rounded-full h-8 md:h-9 text-xs md:text-sm min-w-0"
+            className="flex-1 rounded-full h-9 text-sm"
             disabled={isSending}
             data-testid="input-message"
           />
@@ -233,10 +221,10 @@ export function ChatArea({ friend, group, messages, onSendMessage, isSending }: 
             type="submit"
             size="icon"
             disabled={!messageInput.trim() || isSending}
-            className="rounded-full shrink-0 h-8 md:h-9 w-8 md:w-9"
+            className="rounded-full shrink-0 h-9 w-9"
             data-testid="button-send-message"
           >
-            <Send className="h-3.5 md:h-4 w-3.5 md:w-4" />
+            <Send className="h-4 w-4" />
           </Button>
         </form>
       </div>
@@ -247,7 +235,6 @@ export function ChatArea({ friend, group, messages, onSendMessage, isSending }: 
           groupName={group.name}
           isCreator={group.createdBy === user?.id}
           onClose={() => setShowGroupPanel(false)}
-          isMobile={true}
         />
       )}
     </div>

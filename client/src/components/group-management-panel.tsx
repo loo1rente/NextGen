@@ -4,7 +4,6 @@ import { Button } from "@/components/ui/button";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Badge } from "@/components/ui/badge";
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogHeader, AlertDialogTitle } from "@/components/ui/alert-dialog";
-import { Sheet, SheetContent, SheetHeader, SheetTitle } from "@/components/ui/sheet";
 import { apiRequest, queryClient } from "@/lib/queryClient";
 import { useToast } from "@/hooks/use-toast";
 import { useLanguage } from "@/lib/language-context";
@@ -17,7 +16,6 @@ interface GroupManagementPanelProps {
   groupName: string;
   isCreator: boolean;
   onClose: () => void;
-  isMobile?: boolean;
 }
 
 export function GroupManagementPanel({
@@ -25,7 +23,6 @@ export function GroupManagementPanel({
   groupName,
   isCreator,
   onClose,
-  isMobile = false,
 }: GroupManagementPanelProps) {
   const { t } = useLanguage();
   const { toast } = useToast();
@@ -99,26 +96,24 @@ export function GroupManagementPanel({
   const memberIds = new Set(members.map(m => m.id));
   const nonMembers = friends.filter(u => !memberIds.has(u.id));
 
-  const PanelContent = () => (
-    <>
-      <div className={`${isMobile ? 'pb-3' : 'h-16 border-b border-border'} px-4 flex items-center justify-between ${!isMobile ? 'shrink-0' : ''}`}>
+  return (
+    <div className="w-80 border-l border-border flex flex-col h-full bg-card">
+      <div className="h-16 border-b border-border px-4 flex items-center justify-between shrink-0">
         <div>
           <p className="font-semibold text-sm">{groupName}</p>
           <p className="text-xs text-muted-foreground">{members.length} {t("messenger.members")}</p>
         </div>
-        {isMobile && (
-          <Button
-            variant="ghost"
-            size="icon"
-            onClick={onClose}
-            data-testid="button-close-group-panel"
-          >
-            <X className="h-4 w-4" />
-          </Button>
-        )}
+        <Button
+          variant="ghost"
+          size="icon"
+          onClick={onClose}
+          data-testid="button-close-group-panel"
+        >
+          <X className="h-4 w-4" />
+        </Button>
       </div>
 
-      <ScrollArea className={isMobile ? 'max-h-[60vh]' : 'flex-1'}>
+      <ScrollArea className="flex-1">
         <div className="p-3 space-y-3">
           {membersLoading ? (
             <p className="text-xs text-muted-foreground px-2">{t('messenger.loading')}</p>
@@ -207,66 +202,6 @@ export function GroupManagementPanel({
           )}
         </div>
       </ScrollArea>
-    </>
-  );
-
-  if (isMobile) {
-    return (
-      <>
-        <Sheet open={true} onOpenChange={onClose}>
-          <SheetContent side="right" className="w-full sm:w-96">
-            <SheetHeader>
-              <SheetTitle>{groupName}</SheetTitle>
-            </SheetHeader>
-            <div className="mt-4">
-              <PanelContent />
-            </div>
-          </SheetContent>
-        </Sheet>
-
-        {kickConfirmation && (
-          <AlertDialog open={!!kickConfirmation} onOpenChange={(open) => !open && setKickConfirmation(null)}>
-            <AlertDialogContent>
-              <AlertDialogHeader>
-                <AlertDialogTitle>Kick member from group?</AlertDialogTitle>
-                <AlertDialogDescription>
-                  Are you sure you want to kick {kickConfirmation.memberName} from {groupName}? They will no longer have access to the group.
-                </AlertDialogDescription>
-              </AlertDialogHeader>
-              <div className="flex justify-end gap-2">
-                <AlertDialogCancel>Cancel</AlertDialogCancel>
-                <AlertDialogAction
-                  onClick={() => removeMemberMutation.mutate(kickConfirmation.memberId)}
-                  disabled={removeMemberMutation.isPending}
-                  className="bg-destructive hover:bg-destructive/90"
-                >
-                  Kick member
-                </AlertDialogAction>
-              </div>
-            </AlertDialogContent>
-          </AlertDialog>
-        )}
-      </>
-    );
-  }
-
-  return (
-    <div className="hidden lg:flex lg:w-80 border-l border-border flex-col h-full bg-card">
-      <div className="h-16 border-b border-border px-4 flex items-center justify-between shrink-0">
-        <div>
-          <p className="font-semibold text-sm">{groupName}</p>
-          <p className="text-xs text-muted-foreground">{members.length} {t("messenger.members")}</p>
-        </div>
-        <Button
-          variant="ghost"
-          size="icon"
-          onClick={onClose}
-          data-testid="button-close-group-panel"
-        >
-          <X className="h-4 w-4" />
-        </Button>
-      </div>
-      <PanelContent />
 
       {kickConfirmation && (
         <AlertDialog open={!!kickConfirmation} onOpenChange={(open) => !open && setKickConfirmation(null)}>
