@@ -2,7 +2,7 @@ import { useState, useEffect, useRef } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { ScrollArea } from "@/components/ui/scroll-area";
-import { Send, MoreVertical, Phone, Video } from "lucide-react";
+import { Send, MoreVertical, Phone, Video, UserPlus } from "lucide-react";
 import { formatDistanceToNow, format } from "date-fns";
 import { useAuth } from "@/lib/auth-context";
 import { useLanguage } from "@/lib/language-context";
@@ -118,15 +118,26 @@ export function ChatArea({ friend, group, messages, onSendMessage, isSending }: 
               <Video className="h-5 w-5" />
             </Button>
             {group && (
-              <Button
-                variant="ghost"
-                size="icon"
-                onClick={() => setShowGroupPanel(!showGroupPanel)}
-                data-testid="button-group-info"
-                title="Group info"
-              >
-                <MoreVertical className="h-5 w-5" />
-              </Button>
+              <>
+                <Button
+                  variant="ghost"
+                  size="icon"
+                  onClick={() => setShowGroupPanel(true)}
+                  data-testid="button-add-members"
+                  title="Add members"
+                >
+                  <UserPlus className="h-5 w-5" />
+                </Button>
+                <Button
+                  variant="ghost"
+                  size="icon"
+                  onClick={() => setShowGroupPanel(!showGroupPanel)}
+                  data-testid="button-group-info"
+                  title="Group info"
+                >
+                  <MoreVertical className="h-5 w-5" />
+                </Button>
+              </>
             )}
             {!group && (
               <Button variant="ghost" size="icon" data-testid="button-chat-menu">
