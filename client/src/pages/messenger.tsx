@@ -1,11 +1,14 @@
 import { useState, useEffect } from "react";
 import { useAuth } from "@/lib/auth-context";
+import { useLocation } from "wouter";
 import { UserSidebar } from "@/components/user-sidebar";
 import { ConversationList } from "@/components/conversation-list";
 import { ChatArea } from "@/components/chat-area";
 import { FriendRequests } from "@/components/friend-requests";
 import { ContactsList } from "@/components/contacts-list";
 import { AddFriendDialog } from "@/components/add-friend-dialog";
+import AdminPage from "@/pages/admin";
+import SettingsPage from "@/pages/settings";
 import { useQuery, useMutation } from "@tanstack/react-query";
 import { apiRequest, queryClient } from "@/lib/queryClient";
 import { useToast } from "@/hooks/use-toast";
@@ -24,7 +27,8 @@ interface FriendRequestWithUser extends Friendship {
 export default function MessengerPage() {
   const { user } = useAuth();
   const { toast } = useToast();
-  const [activeView, setActiveView] = useState<"chats" | "contacts" | "requests">("chats");
+  const [, setLocation] = useLocation();
+  const [activeView, setActiveView] = useState<"chats" | "contacts" | "requests" | "settings" | "admin">("chats");
   const [selectedFriendId, setSelectedFriendId] = useState<string | null>(null);
   const [addFriendDialogOpen, setAddFriendDialogOpen] = useState(false);
   const [ws, setWs] = useState<WebSocket | null>(null);
@@ -234,6 +238,10 @@ export default function MessengerPage() {
           isLoading={acceptFriendMutation.isPending || declineFriendMutation.isPending}
         />
       )}
+
+      {activeView === "settings" && <SettingsPage />}
+
+      {activeView === "admin" && user?.isAdmin && <AdminPage />}
 
       <AddFriendDialog
         open={addFriendDialogOpen}

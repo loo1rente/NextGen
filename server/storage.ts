@@ -155,6 +155,38 @@ export class DatabaseStorage implements IStorage {
         )
       );
   }
+
+  async getAllUsers(): Promise<User[]> {
+    const results = await db.select().from(users);
+    return results;
+  }
+
+  async banUser(id: string): Promise<User> {
+    const [user] = await db
+      .update(users)
+      .set({ isBanned: true })
+      .where(eq(users.id, id))
+      .returning();
+    return user;
+  }
+
+  async unbanUser(id: string): Promise<User> {
+    const [user] = await db
+      .update(users)
+      .set({ isBanned: false })
+      .where(eq(users.id, id))
+      .returning();
+    return user;
+  }
+
+  async updateUserProfile(id: string, displayName: string | null, username: string): Promise<User> {
+    const [user] = await db
+      .update(users)
+      .set({ displayName: displayName || null, username })
+      .where(eq(users.id, id))
+      .returning();
+    return user;
+  }
 }
 
 export const storage = new DatabaseStorage();

@@ -8,7 +8,10 @@ export const users = pgTable("users", {
   id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
   username: text("username").notNull().unique(),
   password: text("password").notNull(),
+  displayName: text("display_name"),
   status: text("status").notNull().default("offline"),
+  isBanned: boolean("is_banned").notNull().default(false),
+  isAdmin: boolean("is_admin").notNull().default(false),
   lastSeen: timestamp("last_seen").defaultNow(),
 });
 

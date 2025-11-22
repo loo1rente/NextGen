@@ -269,6 +269,93 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  app.post("/api/auth/profile", async (req, res) => {
+    try {
+      const userId = (req.session as any).userId;
+      if (!userId) {
+        return res.status(401).json({ message: "Not authenticated" });
+      }
+
+      const { displayName, username } = req.body;
+      if (!username) {
+        return res.status(400).json({ message: "Username is required" });
+      }
+
+      const existingUser = await storage.getUserByUsername(username);
+      if (existingUser && existingUser.id !== userId) {
+        return res.status(400).json({ message: "Username already taken" });
+      }
+
+      const user = await storage.updateUserProfile(userId, displayName || null, username);
+      const { password: _, ...userWithoutPassword } = user;
+      res.json(userWithoutPassword);
+    } catch (error: any) {
+      res.status(400).json({ message: error.message || "Failed to update profile" });
+    }
+  });
+
+  app.get("/api/admin/users", async (req, res) => {
+    try {
+      const userId = (req.session as any).userId;
+      if (!userId) {
+        return res.status(401).json({ message: "Not authenticated" });
+      }
+
+      const user = await storage.getUser(userId);
+      if (!user || !user.isAdmin) {
+        return res.status(403).json({ message: "Admin access required" });
+      }
+
+      const users = await storage.getAllUsers();
+      const usersWithoutPasswords = users.map(({ password, ...u }) => u);
+      res.json(usersWithoutPasswords);
+    } catch (error: any) {
+      res.status(400).json({ message: error.message || "Failed to fetch users" });
+    }
+  });
+
+  app.post("/api/admin/users/:userId/ban", async (req, res) => {
+    try {
+      const adminUserId = (req.session as any).userId;
+      if (!adminUserId) {
+        return res.status(401).json({ message: "Not authenticated" });
+      }
+
+      const admin = await storage.getUser(adminUserId);
+      if (!admin || !admin.isAdmin) {
+        return res.status(403).json({ message: "Admin access required" });
+      }
+
+      const { userId } = req.params;
+      const user = await storage.banUser(userId);
+      const { password: _, ...userWithoutPassword } = user;
+      res.json(userWithoutPassword);
+    } catch (error: any) {
+      res.status(400).json({ message: error.message || "Failed to ban user" });
+    }
+  });
+
+  app.post("/api/admin/users/:userId/unban", async (req, res) => {
+    try {
+      const adminUserId = (req.session as any).userId;
+      if (!adminUserId) {
+        return res.status(401).json({ message: "Not authenticated" });
+      }
+
+      const admin = await storage.getUser(adminUserId);
+      if (!admin || !admin.isAdmin) {
+        return res.status(403).json({ message: "Admin access required" });
+      }
+
+      const { userId } = req.params;
+      const user = await storage.unbanUser(userId);
+      const { password: _, ...userWithoutPassword } = user;
+      res.json(userWithoutPassword);
+    } catch (error: any) {
+      res.status(400).json({ message: error.message || "Failed to unban user" });
+    }
+  });
+
   const httpServer = createServer(app);
 
   const wss = new WebSocketServer({ server: httpServer, path: '/ws' });

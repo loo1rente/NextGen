@@ -1,12 +1,13 @@
 import { useAuth } from "@/lib/auth-context";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
-import { MessageCircle, Users, UserPlus, Settings, LogOut } from "lucide-react";
+import { MessageCircle, Users, UserPlus, Settings, LogOut, Shield } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
+import { ThemeToggle } from "./theme-toggle";
 
 interface UserSidebarProps {
-  activeView: "chats" | "contacts" | "requests";
-  onViewChange: (view: "chats" | "contacts" | "requests") => void;
+  activeView: "chats" | "contacts" | "requests" | "settings" | "admin";
+  onViewChange: (view: "chats" | "contacts" | "requests" | "settings" | "admin") => void;
   pendingRequestsCount: number;
 }
 
@@ -77,14 +78,32 @@ export function UserSidebar({ activeView, onViewChange, pendingRequestsCount }: 
       </nav>
 
       <div className="p-2 border-t border-sidebar-border space-y-1">
+        {user?.isAdmin && (
+          <Button
+            variant={activeView === "admin" ? "secondary" : "ghost"}
+            className="w-full justify-start gap-3"
+            onClick={() => onViewChange("admin")}
+            data-testid="button-nav-admin"
+          >
+            <Shield className="h-5 w-5 shrink-0" />
+            <span className="hidden lg:inline">Admin</span>
+          </Button>
+        )}
+
         <Button
-          variant="ghost"
+          variant={activeView === "settings" ? "secondary" : "ghost"}
           className="w-full justify-start gap-3"
-          data-testid="button-settings"
+          onClick={() => onViewChange("settings")}
+          data-testid="button-nav-settings"
         >
           <Settings className="h-5 w-5 shrink-0" />
           <span className="hidden lg:inline">Settings</span>
         </Button>
+
+        <div className="px-2 py-1 flex items-center justify-between">
+          <span className="text-xs text-muted-foreground hidden lg:inline">Theme</span>
+          <ThemeToggle />
+        </div>
 
         <Button
           variant="ghost"
