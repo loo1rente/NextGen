@@ -22,7 +22,7 @@ export function FriendRequests({ requests, onAccept, onDecline, isLoading }: Fri
 
 
   return (
-    <div className="flex-1 flex flex-col h-full bg-background">
+    <div className="flex-1 flex flex-col h-full bg-background w-full">
       <div className="p-4 border-b border-border">
         <h2 className="text-lg font-semibold">{t('messenger.requests_short')}</h2>
         <p className="text-sm text-muted-foreground mt-1">

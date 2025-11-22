@@ -25,7 +25,7 @@ export function ContactsList({ contacts, onStartChat, onAddFriendClick }: Contac
   );
 
   return (
-    <div className="flex-1 flex flex-col h-full bg-background">
+    <div className="flex-1 flex flex-col h-full bg-background w-full">
       <div className="p-4 border-b border-border">
         <div className="flex items-center justify-between mb-3">
           <div>
