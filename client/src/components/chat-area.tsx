@@ -2,7 +2,7 @@ import { useState, useEffect, useRef } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { ScrollArea } from "@/components/ui/scroll-area";
-import { Send, MoreVertical, Phone, Video, UserPlus } from "lucide-react";
+import { Send, MoreVertical, Phone, Video, UserPlus, Info } from "lucide-react";
 import { formatDistanceToNow, format } from "date-fns";
 import { useAuth } from "@/lib/auth-context";
 import { useLanguage } from "@/lib/language-context";
@@ -110,6 +110,18 @@ export function ChatArea({ friend, group, messages, onSendMessage, isSending }: 
           </div>
         </div>
         <div className="flex items-center gap-1">
+          {group && (
+            <Button 
+              variant="ghost" 
+              size="icon" 
+              onClick={() => setShowGroupPanel(true)} 
+              data-testid="button-group-info"
+              title="Group info"
+              className="md:hidden"
+            >
+              <Info className="h-5 w-5" />
+            </Button>
+          )}
           <Button variant="ghost" size="icon" onClick={handleVoiceCall} data-testid="button-voice-call" title="Voice call">
             <Phone className="h-5 w-5" />
           </Button>
@@ -124,6 +136,7 @@ export function ChatArea({ friend, group, messages, onSendMessage, isSending }: 
                 onClick={() => setShowGroupPanel(true)}
                 data-testid="button-add-members"
                 title="Add members"
+                className="hidden md:inline-flex"
               >
                 <UserPlus className="h-5 w-5" />
               </Button>
@@ -133,6 +146,7 @@ export function ChatArea({ friend, group, messages, onSendMessage, isSending }: 
                 onClick={() => setShowGroupPanel(!showGroupPanel)}
                 data-testid="button-group-info"
                 title="Group info"
+                className="hidden md:inline-flex"
               >
                 <MoreVertical className="h-5 w-5" />
               </Button>
@@ -230,12 +244,22 @@ export function ChatArea({ friend, group, messages, onSendMessage, isSending }: 
       </div>
 
       {showGroupPanel && group && (
-        <GroupManagementPanel
-          groupId={group.id}
-          groupName={group.name}
-          isCreator={group.createdBy === user?.id}
-          onClose={() => setShowGroupPanel(false)}
-        />
+        <>
+          <GroupManagementPanel
+            groupId={group.id}
+            groupName={group.name}
+            isCreator={group.createdBy === user?.id}
+            onClose={() => setShowGroupPanel(false)}
+            isMobileDrawer={false}
+          />
+          <GroupManagementPanel
+            groupId={group.id}
+            groupName={group.name}
+            isCreator={group.createdBy === user?.id}
+            onClose={() => setShowGroupPanel(false)}
+            isMobileDrawer={true}
+          />
+        </>
       )}
     </div>
   );
