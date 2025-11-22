@@ -10,14 +10,23 @@ import { useToast } from "@/hooks/use-toast";
 import { AvatarDisplay } from "@/components/avatar-display";
 import type { User, Message } from "@shared/schema";
 
+interface Group {
+  id: string;
+  name: string;
+  description?: string;
+  createdBy: string;
+  createdAt: string;
+}
+
 interface ChatAreaProps {
   friend: User | null;
+  group?: Group | null;
   messages: Message[];
   onSendMessage: (content: string) => void;
   isSending: boolean;
 }
 
-export function ChatArea({ friend, messages, onSendMessage, isSending }: ChatAreaProps) {
+export function ChatArea({ friend, group, messages, onSendMessage, isSending }: ChatAreaProps) {
   const { user } = useAuth();
   const { t } = useLanguage();
   const { toast } = useToast();
@@ -56,7 +65,7 @@ export function ChatArea({ friend, messages, onSendMessage, isSending }: ChatAre
   };
 
 
-  if (!friend) {
+  if (!friend && !group) {
     return (
       <div className="flex-1 flex items-center justify-center bg-background">
         <div className="text-center max-w-sm px-4">
@@ -74,19 +83,27 @@ export function ChatArea({ friend, messages, onSendMessage, isSending }: ChatAre
       <div className="h-16 border-b border-border px-4 flex items-center justify-between shrink-0 bg-gradient-to-r from-background to-background/95">
         <div className="flex items-center gap-3">
           <div className="relative">
-            <AvatarDisplay 
-              username={friend.username} 
-              avatarUrl={friend.avatarUrl}
-              size="md"
-            />
-            {friend.status === "online" && (
-              <div className="absolute bottom-0 right-0 h-2.5 w-2.5 rounded-full bg-status-online border-2 border-background" />
+            {friend ? (
+              <>
+                <AvatarDisplay 
+                  username={friend.username} 
+                  avatarUrl={friend.avatarUrl}
+                  size="md"
+                />
+                {friend.status === "online" && (
+                  <div className="absolute bottom-0 right-0 h-2.5 w-2.5 rounded-full bg-status-online border-2 border-background" />
+                )}
+              </>
+            ) : (
+              <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-primary/20">
+                <span className="text-sm font-semibold text-primary">{group?.name.charAt(0).toUpperCase()}</span>
+              </div>
             )}
           </div>
           <div>
-            <p className="font-semibold text-sm" data-testid="text-chat-friend-name">{friend.username}</p>
+            <p className="font-semibold text-sm" data-testid="text-chat-name">{friend?.username || group?.name}</p>
             <p className="text-xs text-muted-foreground">
-              {friend.status === "online" ? t('messenger.online') : `${t('messenger.lastSeen')} ${formatDistanceToNow(new Date(friend.lastSeen || new Date()), { addSuffix: true })}`}
+              {friend ? (friend.status === "online" ? t('messenger.online') : `${t('messenger.lastSeen')} ${formatDistanceToNow(new Date(friend.lastSeen || new Date()), { addSuffix: true })}`) : `${t('messenger.contacts')}`}
             </p>
           </div>
         </div>

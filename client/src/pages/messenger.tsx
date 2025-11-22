@@ -20,6 +20,20 @@ interface FriendWithMessages {
   unreadCount: number;
 }
 
+interface Group {
+  id: string;
+  name: string;
+  description?: string;
+  createdBy: string;
+  createdAt: string;
+}
+
+interface GroupWithMessages {
+  group: Group;
+  messages: Message[];
+  unreadCount: number;
+}
+
 interface FriendRequestWithUser extends Friendship {
   requester: User;
 }
@@ -30,11 +44,16 @@ export default function MessengerPage() {
   const [, setLocation] = useLocation();
   const [activeView, setActiveView] = useState<"chats" | "contacts" | "requests" | "settings" | "admin">("chats");
   const [selectedFriendId, setSelectedFriendId] = useState<string | null>(null);
+  const [selectedGroupId, setSelectedGroupId] = useState<string | null>(null);
   const [addFriendDialogOpen, setAddFriendDialogOpen] = useState(false);
   const [ws, setWs] = useState<WebSocket | null>(null);
 
   const { data: friends = [] } = useQuery<User[]>({
     queryKey: ["/api/friends"],
+  });
+
+  const { data: groups = [] } = useQuery<Group[]>({
+    queryKey: ["/api/groups"],
   });
 
   const { data: friendRequests = [] } = useQuery<FriendRequestWithUser[]>({
@@ -46,8 +65,8 @@ export default function MessengerPage() {
   });
 
   const sendMessageMutation = useMutation({
-    mutationFn: async ({ receiverId, content }: { receiverId: string; content: string }) => {
-      const res = await apiRequest("POST", "/api/messages", { receiverId, content });
+    mutationFn: async ({ receiverId, groupId, content }: { receiverId?: string; groupId?: string; content: string }) => {
+      const res = await apiRequest("POST", "/api/messages", { receiverId, groupId, content });
       return await res.json();
     },
     onSuccess: () => {
@@ -164,6 +183,20 @@ export default function MessengerPage() {
     };
   });
 
+  const groupsWithMessages: GroupWithMessages[] = groups.map((group) => {
+    const groupMessages = allMessages.filter((msg) => msg.groupId === group.id);
+    const sortedMessages = [...groupMessages].sort(
+      (a, b) => new Date(a.createdAt).getTime() - new Date(b.createdAt).getTime()
+    );
+    const unreadCount = groupMessages.filter((msg) => msg.senderId !== user?.id && !msg.isRead).length;
+
+    return {
+      group,
+      messages: sortedMessages,
+      unreadCount,
+    };
+  });
+
   const conversations = friendsWithMessages
     .filter((fwm) => fwm.messages.length > 0)
     .sort((a, b) => {
@@ -177,13 +210,36 @@ export default function MessengerPage() {
       unreadCount: fwm.unreadCount,
     }));
 
+  const groupConversations = groupsWithMessages
+    .filter((gm) => gm.messages.length > 0)
+    .sort((a, b) => {
+      const aLastMsg = a.messages[a.messages.length - 1];
+      const bLastMsg = b.messages[b.messages.length - 1];
+      return new Date(bLastMsg.createdAt).getTime() - new Date(aLastMsg.createdAt).getTime();
+    })
+    .map((gm) => ({
+      group: gm.group,
+      lastMessage: gm.messages[gm.messages.length - 1],
+      unreadCount: gm.unreadCount,
+    }));
+
   const selectedFriendData = friendsWithMessages.find((fwm) => fwm.friend.id === selectedFriendId);
   const selectedFriend = selectedFriendData?.friend || null;
-  const selectedMessages = selectedFriendData?.messages || [];
+  const selectedFriendMessages = selectedFriendData?.messages || [];
+
+  const selectedGroupData = groupsWithMessages.find((gm) => gm.group.id === selectedGroupId);
+  const selectedGroup = selectedGroupData?.group || null;
+  const selectedGroupMessages = selectedGroupData?.messages || [];
+
+  const selectedMessages = selectedFriendId ? selectedFriendMessages : selectedGroupMessages;
 
   const handleSendMessage = (content: string) => {
-    if (selectedFriendId && user) {
-      sendMessageMutation.mutate({ receiverId: selectedFriendId, content });
+    if (user) {
+      if (selectedFriendId) {
+        sendMessageMutation.mutate({ receiverId: selectedFriendId, content });
+      } else if (selectedGroupId) {
+        sendMessageMutation.mutate({ groupId: selectedGroupId, content });
+      }
     }
   };
 
@@ -209,12 +265,22 @@ export default function MessengerPage() {
         <>
           <ConversationList
             conversations={conversations}
+            groupConversations={groupConversations}
             selectedFriendId={selectedFriendId}
-            onSelectConversation={setSelectedFriendId}
+            selectedGroupId={selectedGroupId}
+            onSelectConversation={(friendId) => {
+              setSelectedFriendId(friendId);
+              setSelectedGroupId(null);
+            }}
+            onSelectGroup={(groupId) => {
+              setSelectedGroupId(groupId);
+              setSelectedFriendId(null);
+            }}
             currentUserId={user?.id || ""}
           />
           <ChatArea
             friend={selectedFriend}
+            group={selectedGroup}
             messages={selectedMessages}
             onSendMessage={handleSendMessage}
             isSending={sendMessageMutation.isPending}
