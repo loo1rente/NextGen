@@ -262,11 +262,14 @@ export async function registerRoutes(app: Express): Promise<Server> {
           content,
         });
 
-        // Broadcast to all group members
+        // Broadcast to all group members except the sender
         const allMembers = await storage.getGroupMembers(groupId);
         const sender = await storage.getUser(userId);
         
         allMembers.forEach(member => {
+          // Skip the sender - they already got the response from the HTTP POST
+          if (member.userId === userId) return;
+          
           const memberWs = connectedUsers.get(member.userId);
           if (memberWs && memberWs.readyState === WebSocket.OPEN) {
             memberWs.send(JSON.stringify({

@@ -138,16 +138,14 @@ export default function MessengerPage() {
     socket.onmessage = (event) => {
       const data = JSON.parse(event.data);
       if (data.type === "new_message") {
-        // Only invalidate if this message is NOT from the current user
-        // (the mutation already handles cache invalidation for sent messages)
-        if (data.senderId !== user?.id) {
-          queryClient.invalidateQueries({ queryKey: ["/api/messages"] });
-          if (data.senderId !== selectedFriendId && !data.groupId) {
-            toast({
-              title: "New message",
-              description: `${data.senderUsername}: ${data.content.substring(0, 50)}${data.content.length > 50 ? "..." : ""}`,
-            });
-          }
+        // Invalidate cache for new messages received from other users
+        queryClient.invalidateQueries({ queryKey: ["/api/messages"] });
+        // Show toast for direct messages from users not in current chat
+        if (!data.groupId && data.senderId !== selectedFriendId) {
+          toast({
+            title: "New message",
+            description: `${data.senderUsername}: ${data.content.substring(0, 50)}${data.content.length > 50 ? "..." : ""}`,
+          });
         }
       }
     };
