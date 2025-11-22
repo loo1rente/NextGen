@@ -1,4 +1,5 @@
 import { useAuth } from "@/lib/auth-context";
+import { useLanguage } from "@/lib/language-context";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
 import { MessageCircle, Users, UserPlus, Settings, LogOut, Shield } from "lucide-react";
@@ -13,6 +14,7 @@ interface UserSidebarProps {
 
 export function UserSidebar({ activeView, onViewChange, pendingRequestsCount }: UserSidebarProps) {
   const { user, logout } = useAuth();
+  const { t } = useLanguage();
 
   const getInitials = (username: string) => {
     return username.slice(0, 2).toUpperCase();
@@ -36,7 +38,7 @@ export function UserSidebar({ activeView, onViewChange, pendingRequestsCount }: 
           </div>
           <div className="hidden lg:block flex-1 min-w-0">
             <p className="font-semibold text-sm truncate" data-testid="text-username">{user?.username}</p>
-            <p className="text-xs text-muted-foreground">Online</p>
+            <p className="text-xs text-muted-foreground">{t('messenger.online')}</p>
           </div>
         </div>
       </div>
@@ -49,7 +51,7 @@ export function UserSidebar({ activeView, onViewChange, pendingRequestsCount }: 
           data-testid="button-nav-chats"
         >
           <MessageCircle className="h-5 w-5 shrink-0" />
-          <span className="hidden lg:inline">Chats</span>
+          <span className="hidden lg:inline">{t('messenger.chats')}</span>
         </Button>
 
         <Button
@@ -59,7 +61,7 @@ export function UserSidebar({ activeView, onViewChange, pendingRequestsCount }: 
           data-testid="button-nav-contacts"
         >
           <Users className="h-5 w-5 shrink-0" />
-          <span className="hidden lg:inline">Contacts</span>
+          <span className="hidden lg:inline">{t('messenger.contacts')}</span>
         </Button>
 
         <Button
@@ -69,7 +71,7 @@ export function UserSidebar({ activeView, onViewChange, pendingRequestsCount }: 
           data-testid="button-nav-requests"
         >
           <UserPlus className="h-5 w-5 shrink-0" />
-          <span className="hidden lg:inline">Friend Requests</span>
+          <span className="hidden lg:inline">{t('messenger.requests_short')}</span>
           {pendingRequestsCount > 0 && (
             <Badge className="ml-auto hidden lg:flex" data-testid="badge-pending-count">
               {pendingRequestsCount}
@@ -87,7 +89,7 @@ export function UserSidebar({ activeView, onViewChange, pendingRequestsCount }: 
             data-testid="button-nav-admin"
           >
             <Shield className="h-5 w-5 shrink-0" />
-            <span className="hidden lg:inline">Admin</span>
+            <span className="hidden lg:inline">{t('admin.admin')}</span>
           </Button>
         )}
 
@@ -98,11 +100,11 @@ export function UserSidebar({ activeView, onViewChange, pendingRequestsCount }: 
           data-testid="button-nav-settings"
         >
           <Settings className="h-5 w-5 shrink-0" />
-          <span className="hidden lg:inline">Settings</span>
+          <span className="hidden lg:inline">{t('settings.settings')}</span>
         </Button>
 
         <div className="px-2 py-1 flex items-center justify-between">
-          <span className="text-xs text-muted-foreground hidden lg:inline">Theme</span>
+          <span className="text-xs text-muted-foreground hidden lg:inline">{t('settings.theme')}</span>
           <ThemeToggle />
         </div>
 
@@ -113,7 +115,7 @@ export function UserSidebar({ activeView, onViewChange, pendingRequestsCount }: 
           data-testid="button-logout"
         >
           <LogOut className="h-5 w-5 shrink-0" />
-          <span className="hidden lg:inline">Logout</span>
+          <span className="hidden lg:inline">{t('settings.logout')}</span>
         </Button>
       </div>
     </div>

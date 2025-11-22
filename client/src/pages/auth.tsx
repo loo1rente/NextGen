@@ -76,7 +76,7 @@ export default function AuthPage() {
           <div>
             <CardTitle className="text-2xl font-semibold">NextGen Messenger</CardTitle>
             <CardDescription className="text-base mt-2">
-              {isLogin ? "Welcome back! Sign in to continue." : t('auth.dontHaveAccount')}
+              {isLogin ? t('auth.welcomeBack') : t('auth.dontHaveAccount')}
             </CardDescription>
           </div>
         </CardHeader>
@@ -106,7 +106,7 @@ export default function AuthPage() {
                 name="password"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>Password</FormLabel>
+                    <FormLabel>{t('auth.password')}</FormLabel>
                     <FormControl>
                       <Input
                         {...field}
@@ -126,7 +126,7 @@ export default function AuthPage() {
                 disabled={authMutation.isPending}
                 data-testid="button-submit"
               >
-                {authMutation.isPending ? "Please wait..." : isLogin ? "Sign In" : "Sign Up"}
+                {authMutation.isPending ? t('auth.pleaseWait') : isLogin ? t('auth.signIn') : t('auth.signUp')}
               </Button>
             </form>
           </Form>
@@ -140,7 +140,7 @@ export default function AuthPage() {
               className="text-sm"
               data-testid="button-toggle-mode"
             >
-              {isLogin ? "Don't have an account? Sign up" : "Already have an account? Sign in"}
+              {isLogin ? `${t('auth.dontHaveAccount')} ${t('auth.signUp')}` : `${t('auth.alreadyHaveAccount')} ${t('auth.signIn')}`}
             </Button>
           </div>
         </CardContent>

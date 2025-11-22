@@ -5,12 +5,14 @@ import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { useToast } from "@/hooks/use-toast";
+import { useLanguage } from "@/lib/language-context";
 import { Badge } from "@/components/ui/badge";
 import { Shield, Ban, Check } from "lucide-react";
 import type { User } from "@shared/schema";
 
 export default function AdminPage() {
   const { toast } = useToast();
+  const { t } = useLanguage();
   const { data: users = [] } = useQuery<User[]>({
     queryKey: ["/api/admin/users"],
   });
@@ -23,13 +25,13 @@ export default function AdminPage() {
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["/api/admin/users"] });
       toast({
-        title: "User banned",
-        description: "The user has been successfully banned.",
+        title: t('admin.userBanned'),
+        description: t('admin.userBannedDesc'),
       });
     },
     onError: (error: Error) => {
       toast({
-        title: "Error",
+        title: t('common.error'),
         description: error.message,
         variant: "destructive",
       });
@@ -44,13 +46,13 @@ export default function AdminPage() {
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["/api/admin/users"] });
       toast({
-        title: "User unbanned",
-        description: "The user has been successfully unbanned.",
+        title: t('admin.userUnbanned'),
+        description: t('admin.userUnbannedDesc'),
       });
     },
     onError: (error: Error) => {
       toast({
-        title: "Error",
+        title: t('common.error'),
         description: error.message,
         variant: "destructive",
       });
@@ -71,7 +73,7 @@ export default function AdminPage() {
       <div className="p-6 border-b border-border">
         <div className="flex items-center gap-3 mb-2">
           <Shield className="h-6 w-6 text-primary" />
-          <h1 className="text-2xl font-semibold">Admin Panel</h1>
+          <h1 className="text-2xl font-semibold">{t('admin.userManagement')}</h1>
         </div>
         <p className="text-sm text-muted-foreground">Manage users and control access</p>
       </div>
@@ -98,7 +100,7 @@ export default function AdminPage() {
                       </p>
                       {user.isAdmin && (
                         <Badge variant="default" className="text-xs">
-                          Admin
+                          {t('admin.admin')}
                         </Badge>
                       )}
                     </div>
@@ -110,7 +112,7 @@ export default function AdminPage() {
                       variant={user.isBanned ? "destructive" : "secondary"}
                       data-testid={`badge-status-${user.id}`}
                     >
-                      {user.isBanned ? "Banned" : "Active"}
+                      {user.isBanned ? t('admin.ban') : t('admin.status')}
                     </Badge>
 
                     {user.isBanned ? (
@@ -122,7 +124,7 @@ export default function AdminPage() {
                         data-testid={`button-unban-${user.id}`}
                       >
                         <Check className="h-4 w-4" />
-                        Unban
+                        {t('admin.unban')}
                       </Button>
                     ) : (
                       <Button
@@ -134,7 +136,7 @@ export default function AdminPage() {
                         data-testid={`button-ban-${user.id}`}
                       >
                         <Ban className="h-4 w-4" />
-                        Ban
+                        {t('admin.ban')}
                       </Button>
                     )}
                   </div>

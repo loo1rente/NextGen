@@ -5,6 +5,7 @@ import { Badge } from "@/components/ui/badge";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Search } from "lucide-react";
 import { formatDistanceToNow } from "date-fns";
+import { useLanguage } from "@/lib/language-context";
 import type { User, Message } from "@shared/schema";
 
 interface Conversation {
@@ -26,6 +27,7 @@ export function ConversationList({
   onSelectConversation,
   currentUserId,
 }: ConversationListProps) {
+  const { t } = useLanguage();
   const [searchQuery, setSearchQuery] = useState("");
 
   const getInitials = (username: string) => {
@@ -47,7 +49,7 @@ export function ConversationList({
           <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
           <Input
             type="search"
-            placeholder="Search conversations..."
+            placeholder={t('messenger.searchConversations')}
             className="pl-9 bg-background"
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
@@ -60,10 +62,10 @@ export function ConversationList({
         {filteredConversations.length === 0 ? (
           <div className="p-8 text-center text-muted-foreground">
             <p className="text-sm">
-              {searchQuery ? "No conversations found" : "No conversations yet"}
+              {searchQuery ? t('messenger.noConversations') : t('messenger.noConversations')}
             </p>
             <p className="text-xs mt-1">
-              {searchQuery ? "Try a different search" : "Add friends to start chatting"}
+              {searchQuery ? "Try a different search" : t('messenger.noConversationsDesc')}
             </p>
           </div>
         ) : (
@@ -105,7 +107,7 @@ export function ConversationList({
                         <p className="text-sm text-muted-foreground truncate">
                           {conv.lastMessage
                             ? `${isSent ? "You: " : ""}${conv.lastMessage.content}`
-                            : "No messages yet"}
+                            : t('messenger.noMessages')}
                         </p>
                         {conv.unreadCount > 0 && (
                           <Badge

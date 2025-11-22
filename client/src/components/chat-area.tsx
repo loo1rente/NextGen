@@ -3,9 +3,11 @@ import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { ScrollArea } from "@/components/ui/scroll-area";
-import { Send, MoreVertical } from "lucide-react";
+import { Send, MoreVertical, Phone, Video } from "lucide-react";
 import { formatDistanceToNow, format } from "date-fns";
 import { useAuth } from "@/lib/auth-context";
+import { useLanguage } from "@/lib/language-context";
+import { useToast } from "@/hooks/use-toast";
 import type { User, Message } from "@shared/schema";
 
 interface ChatAreaProps {
@@ -17,9 +19,25 @@ interface ChatAreaProps {
 
 export function ChatArea({ friend, messages, onSendMessage, isSending }: ChatAreaProps) {
   const { user } = useAuth();
+  const { t } = useLanguage();
+  const { toast } = useToast();
   const [messageInput, setMessageInput] = useState("");
   const scrollAreaRef = useRef<HTMLDivElement>(null);
   const messagesEndRef = useRef<HTMLDivElement>(null);
+
+  const handleVoiceCall = () => {
+    toast({
+      title: "Voice Call",
+      description: "Voice calling feature coming soon! Make sure Twilio credentials are configured.",
+    });
+  };
+
+  const handleVideoCall = () => {
+    toast({
+      title: "Video Call",
+      description: "Video calling feature coming soon! Make sure Twilio credentials are configured.",
+    });
+  };
 
   const scrollToBottom = () => {
     messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
@@ -49,9 +67,9 @@ export function ChatArea({ friend, messages, onSendMessage, isSending }: ChatAre
     return (
       <div className="flex-1 flex items-center justify-center bg-background">
         <div className="text-center max-w-sm px-4">
-          <p className="text-lg font-semibold mb-2">Select a conversation</p>
+          <p className="text-lg font-semibold mb-2">{t('messenger.selectConversation')}</p>
           <p className="text-sm text-muted-foreground">
-            Choose a friend from your conversations to start chatting
+            {t('messenger.selectConversationDesc')}
           </p>
         </div>
       </div>
@@ -74,21 +92,29 @@ export function ChatArea({ friend, messages, onSendMessage, isSending }: ChatAre
           <div>
             <p className="font-semibold text-sm" data-testid="text-chat-friend-name">{friend.username}</p>
             <p className="text-xs text-muted-foreground">
-              {friend.status === "online" ? "Online" : `Last seen ${formatDistanceToNow(new Date(friend.lastSeen || new Date()), { addSuffix: true })}`}
+              {friend.status === "online" ? t('messenger.online') : `${t('messenger.lastSeen')} ${formatDistanceToNow(new Date(friend.lastSeen || new Date()), { addSuffix: true })}`}
             </p>
           </div>
         </div>
-        <Button variant="ghost" size="icon" data-testid="button-chat-menu">
-          <MoreVertical className="h-5 w-5" />
-        </Button>
+        <div className="flex items-center gap-1">
+          <Button variant="ghost" size="icon" onClick={handleVoiceCall} data-testid="button-voice-call" title="Voice call">
+            <Phone className="h-5 w-5" />
+          </Button>
+          <Button variant="ghost" size="icon" onClick={handleVideoCall} data-testid="button-video-call" title="Video call">
+            <Video className="h-5 w-5" />
+          </Button>
+          <Button variant="ghost" size="icon" data-testid="button-chat-menu">
+            <MoreVertical className="h-5 w-5" />
+          </Button>
+        </div>
       </div>
 
       <ScrollArea className="flex-1 p-4" ref={scrollAreaRef}>
         {messages.length === 0 ? (
           <div className="flex items-center justify-center h-full">
             <div className="text-center max-w-sm px-4">
-              <p className="text-sm text-muted-foreground">No messages yet</p>
-              <p className="text-xs text-muted-foreground mt-1">Send a message to start the conversation</p>
+              <p className="text-sm text-muted-foreground">{t('messenger.noMessages')}</p>
+              <p className="text-xs text-muted-foreground mt-1">{t('messenger.noMessagesDesc')}</p>
             </div>
           </div>
         ) : (
@@ -140,7 +166,7 @@ export function ChatArea({ friend, messages, onSendMessage, isSending }: ChatAre
         <form onSubmit={handleSubmit} className="flex items-center gap-2 w-full">
           <Input
             type="text"
-            placeholder="Type a message..."
+            placeholder={t('messenger.typeMessage')}
             value={messageInput}
             onChange={(e) => setMessageInput(e.target.value)}
             className="flex-1 rounded-full"

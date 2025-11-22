@@ -6,6 +6,7 @@ import { ScrollArea } from "@/components/ui/scroll-area";
 import { Card } from "@/components/ui/card";
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Search, UserPlus, MessageCircle } from "lucide-react";
+import { useLanguage } from "@/lib/language-context";
 import type { User } from "@shared/schema";
 
 interface ContactsListProps {
@@ -15,6 +16,7 @@ interface ContactsListProps {
 }
 
 export function ContactsList({ contacts, onStartChat, onAddFriendClick }: ContactsListProps) {
+  const { t } = useLanguage();
   const [searchQuery, setSearchQuery] = useState("");
 
   const getInitials = (username: string) => {
@@ -34,21 +36,21 @@ export function ContactsList({ contacts, onStartChat, onAddFriendClick }: Contac
       <div className="p-4 border-b border-border">
         <div className="flex items-center justify-between mb-3">
           <div>
-            <h2 className="text-lg font-semibold">Contacts</h2>
+            <h2 className="text-lg font-semibold">{t('messenger.contacts')}</h2>
             <p className="text-sm text-muted-foreground mt-1">
-              {contacts.length} contact{contacts.length !== 1 ? "s" : ""}
+              {contacts.length} {contacts.length !== 1 ? t('messenger.contacts') : t('messenger.contactCount')}
             </p>
           </div>
           <Button onClick={onAddFriendClick} className="gap-2" data-testid="button-add-friend">
             <UserPlus className="h-4 w-4" />
-            Add Friend
+            {t('messenger.addFriend')}
           </Button>
         </div>
         <div className="relative">
           <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
           <Input
             type="search"
-            placeholder="Search contacts..."
+            placeholder={t('messenger.searchContacts')}
             className="pl-9"
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
@@ -62,10 +64,10 @@ export function ContactsList({ contacts, onStartChat, onAddFriendClick }: Contac
           <div className="flex items-center justify-center h-full p-8">
             <div className="text-center max-w-sm">
               <p className="text-sm text-muted-foreground">
-                {searchQuery ? "No contacts found" : "No contacts yet"}
+                {searchQuery ? t('messenger.noContacts') : t('messenger.noContacts')}
               </p>
               <p className="text-xs text-muted-foreground mt-1">
-                {searchQuery ? "Try a different search" : "Add friends to start building your network"}
+                {searchQuery ? "Try a different search" : t('messenger.noContactsDesc')}
               </p>
             </div>
           </div>
@@ -88,7 +90,7 @@ export function ContactsList({ contacts, onStartChat, onAddFriendClick }: Contac
                       {contact.username}
                     </p>
                     <p className="text-xs text-muted-foreground">
-                      {contact.status === "online" ? "Online" : "Offline"}
+                      {contact.status === "online" ? t('messenger.online') : t('messenger.offline')}
                     </p>
                   </div>
                   <Button
@@ -98,7 +100,7 @@ export function ContactsList({ contacts, onStartChat, onAddFriendClick }: Contac
                     data-testid={`button-chat-${contact.id}`}
                   >
                     <MessageCircle className="h-4 w-4" />
-                    Message
+                    {t('messenger.message')}
                   </Button>
                 </div>
               </Card>
