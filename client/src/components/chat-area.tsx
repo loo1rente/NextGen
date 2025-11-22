@@ -81,10 +81,9 @@ export function ChatArea({ friend, group, messages, onSendMessage, isSending }: 
   }
 
   return (
-    <div className="flex-1 flex h-full bg-background flex-col">
-      <div className="flex flex-col flex-1 min-h-0">
-        <div className="h-16 border-b border-border px-4 flex items-center justify-between shrink-0 bg-gradient-to-r from-background to-background/95">
-          <div className="flex items-center gap-3">
+    <div className="flex-1 flex flex-col bg-background min-h-0">
+      <div className="h-16 border-b border-border px-4 flex items-center justify-between shrink-0 bg-gradient-to-r from-background to-background/95">
+        <div className="flex items-center gap-3">
             <div className="relative">
               {friend ? (
                 <>
@@ -147,88 +146,87 @@ export function ChatArea({ friend, group, messages, onSendMessage, isSending }: 
           </div>
         </div>
 
-        <ScrollArea className="flex-1 p-4 min-h-0" ref={scrollAreaRef}>
-          {messages.length === 0 ? (
-            <div className="flex items-center justify-center h-full">
-              <div className="text-center max-w-sm px-4">
-                <p className="text-sm text-muted-foreground">{t('messenger.noMessages')}</p>
-                <p className="text-xs text-muted-foreground mt-1">{t('messenger.noMessagesDesc')}</p>
-              </div>
+      <div className="flex-1 overflow-y-auto p-4 min-h-0" ref={scrollAreaRef}>
+        {messages.length === 0 ? (
+          <div className="flex items-center justify-center h-full">
+            <div className="text-center max-w-sm px-4">
+              <p className="text-sm text-muted-foreground">{t('messenger.noMessages')}</p>
+              <p className="text-xs text-muted-foreground mt-1">{t('messenger.noMessagesDesc')}</p>
             </div>
-          ) : (
-            <div className="space-y-4">
-              {messages.map((message, index) => {
-                const isSent = message.senderId === user?.id;
-                const showDate =
-                  index === 0 ||
-                  new Date(messages[index - 1].createdAt).toDateString() !==
-                    new Date(message.createdAt).toDateString();
+          </div>
+        ) : (
+          <div className="space-y-4">
+            {messages.map((message, index) => {
+              const isSent = message.senderId === user?.id;
+              const showDate =
+                index === 0 ||
+                new Date(messages[index - 1].createdAt).toDateString() !==
+                  new Date(message.createdAt).toDateString();
 
-                return (
-                  <div key={message.id}>
-                    {showDate && (
-                      <div className="flex justify-center mb-4">
-                        <span className="text-xs text-muted-foreground font-mono px-3 py-1 rounded-full bg-muted">
-                          {format(new Date(message.createdAt), "MMMM d, yyyy")}
-                        </span>
-                      </div>
+              return (
+                <div key={message.id}>
+                  {showDate && (
+                    <div className="flex justify-center mb-4">
+                      <span className="text-xs text-muted-foreground font-mono px-3 py-1 rounded-full bg-muted">
+                        {format(new Date(message.createdAt), "MMMM d, yyyy")}
+                      </span>
+                    </div>
+                  )}
+                  <div
+                    className={`flex ${isSent ? "justify-end" : "justify-start"} animate-fade-in gap-2`}
+                    data-testid={`message-${message.id}`}
+                  >
+                    {!isSent && (
+                      <AvatarDisplay 
+                        username={friend?.username || 'Group'} 
+                        avatarUrl={friend?.avatarUrl}
+                        size="sm"
+                      />
                     )}
                     <div
-                      className={`flex ${isSent ? "justify-end" : "justify-start"} animate-fade-in gap-2`}
-                      data-testid={`message-${message.id}`}
+                      className={`max-w-[65%] px-4 py-2 rounded-3xl shadow-sm ${
+                        isSent
+                          ? "bg-gradient-to-r from-primary to-primary/90 text-primary-foreground rounded-br-sm"
+                          : "bg-card border border-card-border text-card-foreground rounded-bl-sm"
+                      }`}
                     >
-                      {!isSent && (
-                        <AvatarDisplay 
-                          username={friend?.username || 'Group'} 
-                          avatarUrl={friend?.avatarUrl}
-                          size="sm"
-                        />
-                      )}
-                      <div
-                        className={`max-w-[65%] px-4 py-2 rounded-3xl shadow-sm ${
-                          isSent
-                            ? "bg-gradient-to-r from-primary to-primary/90 text-primary-foreground rounded-br-sm"
-                            : "bg-card border border-card-border text-card-foreground rounded-bl-sm"
-                        }`}
-                      >
-                        <p className="text-sm leading-relaxed break-words">{message.content}</p>
-                        <div className="flex items-center gap-1 mt-1 justify-end">
-                          <span className="text-xs opacity-75 font-mono">
-                            {format(new Date(message.createdAt), "HH:mm")}
-                          </span>
-                        </div>
+                      <p className="text-sm leading-relaxed break-words">{message.content}</p>
+                      <div className="flex items-center gap-1 mt-1 justify-end">
+                        <span className="text-xs opacity-75 font-mono">
+                          {format(new Date(message.createdAt), "HH:mm")}
+                        </span>
                       </div>
                     </div>
                   </div>
-                );
-              })}
-              <div ref={messagesEndRef} />
-            </div>
-          )}
-        </ScrollArea>
+                </div>
+              );
+            })}
+            <div ref={messagesEndRef} />
+          </div>
+        )}
+      </div>
 
-        <div className="border-t border-border px-3 py-2 bg-background shrink-0">
-          <form onSubmit={handleSubmit} className="flex items-center gap-2">
-            <Input
-              type="text"
-              placeholder={t('messenger.typeMessage')}
-              value={messageInput}
-              onChange={(e) => setMessageInput(e.target.value)}
-              className="flex-1 rounded-full h-9 text-sm"
-              disabled={isSending}
-              data-testid="input-message"
-            />
-            <Button
-              type="submit"
-              size="icon"
-              disabled={!messageInput.trim() || isSending}
-              className="rounded-full shrink-0 h-9 w-9"
-              data-testid="button-send-message"
-            >
-              <Send className="h-4 w-4" />
-            </Button>
-          </form>
-        </div>
+      <div className="border-t border-border px-3 py-2 bg-background shrink-0">
+        <form onSubmit={handleSubmit} className="flex items-center gap-2">
+          <Input
+            type="text"
+            placeholder={t('messenger.typeMessage')}
+            value={messageInput}
+            onChange={(e) => setMessageInput(e.target.value)}
+            className="flex-1 rounded-full h-9 text-sm"
+            disabled={isSending}
+            data-testid="input-message"
+          />
+          <Button
+            type="submit"
+            size="icon"
+            disabled={!messageInput.trim() || isSending}
+            className="rounded-full shrink-0 h-9 w-9"
+            data-testid="button-send-message"
+          >
+            <Send className="h-4 w-4" />
+          </Button>
+        </form>
       </div>
 
       {showGroupPanel && group && (
