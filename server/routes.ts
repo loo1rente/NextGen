@@ -580,8 +580,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
         
         if (message.type === 'auth' && message.userId) {
           userId = message.userId;
-          connectedUsers.set(userId, ws);
           if (userId) {
+            connectedUsers.set(userId, ws);
             await storage.updateUserStatus(userId, "online");
           }
         }

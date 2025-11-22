@@ -27,7 +27,7 @@ export function GroupManagementPanel({
   const { toast } = useToast();
   const [selectedMembersToAdd, setSelectedMembersToAdd] = useState<string[]>([]);
 
-  const { data: members = [], isLoading: membersLoading } = useQuery<User[]>({
+  const { data: members = [], isLoading: membersLoading, error: membersError } = useQuery<User[]>({
     queryKey: ["/api/groups", groupId, "members"],
     queryFn: async () => {
       const res = await apiRequest("GET", `/api/groups/${groupId}/members-info`, {});
@@ -36,13 +36,22 @@ export function GroupManagementPanel({
     },
   });
 
-  const { data: allUsers = [], isLoading: usersLoading } = useQuery<User[]>({
-    queryKey: ["/api/users/search"],
+  const { data: allUsers = [], isLoading: usersLoading, error: usersError } = useQuery<User[]>({
+    queryKey: ["/api/users/search", "all"],
     queryFn: async () => {
-      const res = await apiRequest("GET", "/api/users/search?q=", {});
-      if (!res.ok) throw new Error("Failed to fetch users");
-      return res.json();
+      try {
+        const res = await apiRequest("GET", "/api/users/search?q=", {});
+        if (!res.ok) {
+          const errText = await res.text();
+          throw new Error(errText || "Failed to fetch users");
+        }
+        return res.json();
+      } catch (err: any) {
+        console.error("Error fetching users:", err);
+        throw err;
+      }
     },
+    retry: 2,
   });
 
   const removeMemberMutation = useMutation({
@@ -93,6 +102,11 @@ export function GroupManagementPanel({
 
   const memberIds = new Set(members.map(m => m.id));
   const nonMembers = allUsers.filter(u => !memberIds.has(u.id));
+
+  // Log state for debugging
+  if (isCreator && usersError) {
+    console.error("Users loading error:", usersError);
+  }
 
   return (
     <div className="w-80 border-l border-border flex flex-col h-full bg-card">
@@ -159,8 +173,12 @@ export function GroupManagementPanel({
               <p className="text-xs font-semibold text-muted-foreground mb-2 px-2">
                 {t("messenger.addMembers")}
               </p>
-              {usersLoading ? (
+              {usersError ? (
+                <p className="text-xs text-red-600 dark:text-red-400 px-2">Error loading users. Please try refreshing.</p>
+              ) : usersLoading ? (
                 <p className="text-xs text-muted-foreground px-2">{t('messenger.loading')}</p>
+              ) : allUsers.length === 0 ? (
+                <p className="text-xs text-muted-foreground px-2">No users available</p>
               ) : nonMembers.length > 0 ? (
                 <div className="space-y-2">
                   {nonMembers.map((user) => (
@@ -189,7 +207,7 @@ export function GroupManagementPanel({
                   ))}
                 </div>
               ) : (
-                <p className="text-xs text-muted-foreground px-2">{t('messenger.noUsers')}</p>
+                <p className="text-xs text-muted-foreground px-2">All users are already members</p>
               )}
             </div>
           )}

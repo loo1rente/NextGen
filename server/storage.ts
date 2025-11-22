@@ -232,7 +232,7 @@ export class DatabaseStorage implements IStorage {
   async searchMessages(query: string, userId?: string, limit: number = 20): Promise<Message[]> {
     const escapedQuery = query.replace(/[_%\\]/g, '\\$&');
     
-    let conditions = [like(messages.content, `%${escapedQuery}%`)];
+    let conditions: any[] = [like(messages.content, `%${escapedQuery}%`)];
     if (userId) {
       conditions.push(or(eq(messages.senderId, userId), eq(messages.receiverId, userId)));
     }
@@ -240,7 +240,7 @@ export class DatabaseStorage implements IStorage {
     const results = await db
       .select()
       .from(messages)
-      .where(and(...conditions))
+      .where(conditions.length === 1 ? conditions[0] : and(...conditions))
       .orderBy(desc(messages.createdAt))
       .limit(limit);
     
