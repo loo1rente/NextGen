@@ -45,7 +45,6 @@ export const messages = pgTable("messages", {
   receiverId: varchar("receiver_id"),
   groupId: varchar("group_id").references(() => groups.id, { onDelete: "cascade" }),
   content: text("content").notNull(),
-  attachments: json("attachments"),
   isRead: boolean("is_read").notNull().default(false),
   createdAt: timestamp("created_at").defaultNow().notNull(),
 });
@@ -163,7 +162,6 @@ export const insertMessageSchema = createInsertSchema(messages).pick({
   receiverId: true,
   groupId: true,
   content: true,
-  attachments: true,
 });
 
 export const insertNotificationSchema = createInsertSchema(notifications).pick({

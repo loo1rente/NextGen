@@ -102,6 +102,28 @@ Preferred communication style: Simple, everyday language.
 - Badge components for unread counts
 - Scroll areas for long lists with custom scrollbar styling
 
+## Implemented Features
+
+### Completed
+- **User Authentication**: Username/password registration and login with bcrypt hashing
+- **Friend System**: Send/accept friend requests with bidirectional friendship management
+- **Direct Messaging**: Real-time 1-on-1 messaging with read status tracking via WebSockets
+- **Presence Tracking**: Online/offline status with last seen timestamps
+- **Avatar Management**: Custom avatar uploads with fallback to auto-generated avatars
+- **Admin Panel**: User management with ban/unban capabilities
+- **Settings Page**: Profile editing, theme toggle, account management
+- **Message Search**: Full-text search across user messages
+- **Group Chat Infrastructure**: Database schema and backend APIs ready
+- **Typing Indicators**: Backend infrastructure for typing status tracking
+- **Notifications**: Notification system with persistence and read tracking
+
+### Upcoming Features
+- Group chat frontend UI
+- Typing indicator display in UI
+- Real-time message reactions
+- Voice/video call integration
+- Mobile app version
+
 ## External Dependencies
 
 **Core Infrastructure:**
