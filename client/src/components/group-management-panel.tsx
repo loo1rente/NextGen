@@ -4,7 +4,6 @@ import { Button } from "@/components/ui/button";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Badge } from "@/components/ui/badge";
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogHeader, AlertDialogTitle } from "@/components/ui/alert-dialog";
-import { Sheet, SheetContent, SheetHeader, SheetTitle } from "@/components/ui/sheet";
 import { apiRequest, queryClient } from "@/lib/queryClient";
 import { useToast } from "@/hooks/use-toast";
 import { useLanguage } from "@/lib/language-context";
@@ -17,7 +16,6 @@ interface GroupManagementPanelProps {
   groupName: string;
   isCreator: boolean;
   onClose: () => void;
-  isMobileDrawer?: boolean;
 }
 
 export function GroupManagementPanel({
@@ -25,7 +23,6 @@ export function GroupManagementPanel({
   groupName,
   isCreator,
   onClose,
-  isMobileDrawer = false,
 }: GroupManagementPanelProps) {
   const { t } = useLanguage();
   const { toast } = useToast();
@@ -99,8 +96,23 @@ export function GroupManagementPanel({
   const memberIds = new Set(members.map(m => m.id));
   const nonMembers = friends.filter(u => !memberIds.has(u.id));
 
-  const PanelContent = () => (
-    <>
+  return (
+    <div className="w-60 sm:w-72 md:w-80 border-l border-border flex flex-col h-full bg-card">
+      <div className="h-16 border-b border-border px-4 flex items-center justify-between shrink-0">
+        <div>
+          <p className="font-semibold text-sm">{groupName}</p>
+          <p className="text-xs text-muted-foreground">{members.length} {t("messenger.members")}</p>
+        </div>
+        <Button
+          variant="ghost"
+          size="icon"
+          onClick={onClose}
+          data-testid="button-close-group-panel"
+        >
+          <X className="h-4 w-4" />
+        </Button>
+      </div>
+
       <ScrollArea className="flex-1">
         <div className="p-3 space-y-3">
           {membersLoading ? (
@@ -213,42 +225,6 @@ export function GroupManagementPanel({
           </AlertDialogContent>
         </AlertDialog>
       )}
-    </>
-  );
-
-  if (isMobileDrawer) {
-    return (
-      <Sheet open={true} onOpenChange={onClose}>
-        <SheetContent side="right" className="w-full sm:w-96">
-          <SheetHeader>
-            <SheetTitle>{groupName}</SheetTitle>
-          </SheetHeader>
-          <div className="mt-4">
-            <PanelContent />
-          </div>
-        </SheetContent>
-      </Sheet>
-    );
-  }
-
-  return (
-    <div className="hidden lg:flex lg:w-80 border-l border-border flex-col h-full bg-card">
-      <div className="h-16 border-b border-border px-4 flex items-center justify-between shrink-0">
-        <div>
-          <p className="font-semibold text-sm">{groupName}</p>
-          <p className="text-xs text-muted-foreground">{members.length} {t("messenger.members")}</p>
-        </div>
-        <Button
-          variant="ghost"
-          size="icon"
-          onClick={onClose}
-          data-testid="button-close-group-panel"
-        >
-          <X className="h-4 w-4" />
-        </Button>
-      </div>
-
-      <PanelContent />
     </div>
   );
 }
