@@ -407,6 +407,29 @@ export function ChatArea({ friend, group, messages, onSendMessage, isSending, ws
     }
   };
 
+  // Load reactions for all messages
+  useEffect(() => {
+    const loadReactions = async () => {
+      const newReactions: Record<string, any[]> = {};
+      for (const message of messages) {
+        try {
+          const res = await fetch(`/api/messages/${message.id}/reactions`);
+          if (res.ok) {
+            const data = await res.json();
+            newReactions[message.id] = data;
+          }
+        } catch (error) {
+          console.error(`Failed to load reactions for message ${message.id}`);
+        }
+      }
+      setReactions(newReactions);
+    };
+    
+    if (messages.length > 0) {
+      loadReactions();
+    }
+  }, [messages.map(m => m.id).join(',')]);
+
   // Setup typing indicator WebSocket handler
   useEffect(() => {
     if (!wsRef.current) return;
