@@ -93,7 +93,7 @@ export function ConversationList({
 
       <ScrollArea className="flex-1">
         {allConversations.length === 0 ? (
-          <div className="p-8 text-center text-muted-foreground">
+          <div className="w-full p-8 text-center text-muted-foreground">
             <p className="text-sm">
               {searchQuery ? t('messenger.noConversations') : t('messenger.noConversations')}
             </p>
@@ -102,7 +102,7 @@ export function ConversationList({
             </p>
           </div>
         ) : (
-          <div className="p-2 space-y-1">
+          <div className="w-full p-2 space-y-1">
             {allConversations.map((conv) => {
               if (conv.type === 'friend') {
                 const isSelected = conv.friend.id === selectedFriendId;
