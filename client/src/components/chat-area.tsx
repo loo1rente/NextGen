@@ -462,6 +462,7 @@ export function ChatArea({ friend, group, messages, onSendMessage, isSending, ws
           groupId={group.id}
           groupName={group.name}
           isCreator={group.createdBy === user?.id}
+          createdById={group.createdBy}
           onClose={() => setShowGroupPanel(false)}
         />
       )}

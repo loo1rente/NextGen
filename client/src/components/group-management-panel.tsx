@@ -15,6 +15,7 @@ interface GroupManagementPanelProps {
   groupId: string;
   groupName: string;
   isCreator: boolean;
+  createdById: string;
   onClose: () => void;
 }
 
@@ -22,6 +23,7 @@ export function GroupManagementPanel({
   groupId,
   groupName,
   isCreator,
+  createdById,
   onClose,
 }: GroupManagementPanelProps) {
   const { t } = useLanguage();
@@ -95,6 +97,18 @@ export function GroupManagementPanel({
 
   const memberIds = new Set(members.map(m => m.id));
   const nonMembers = friends.filter(u => !memberIds.has(u.id));
+  
+  const handleRemoveMember = (memberId: string, memberName: string) => {
+    if (!isCreator) {
+      toast({
+        title: "Error",
+        description: "Only the group creator can remove members",
+        variant: "destructive",
+      });
+      return;
+    }
+    setKickConfirmation({ memberId, memberName });
+  };
 
   return (
     <div className="hidden lg:flex lg:w-80 border-l border-border flex-col h-full bg-card">
@@ -139,18 +153,25 @@ export function GroupManagementPanel({
                         <p className="text-xs text-muted-foreground">{member.status}</p>
                       </div>
                     </div>
-                    {isCreator && (
-                      <Button
-                        variant="ghost"
-                        size="icon"
-                        onClick={() => setKickConfirmation({ memberId: member.id, memberName: member.username })}
-                        disabled={removeMemberMutation.isPending}
-                        data-testid={`button-remove-member-${member.id}`}
-                        title="Kick member from group"
-                      >
-                        <Trash2 className="h-4 w-4 text-destructive" />
-                      </Button>
-                    )}
+                    <div className="flex items-center gap-2">
+                      {member.id === createdById && (
+                        <span className="text-xs px-2 py-0.5 rounded-full bg-primary/20 text-primary font-semibold shrink-0">
+                          Admin
+                        </span>
+                      )}
+                      {isCreator && member.id !== createdById && (
+                        <Button
+                          variant="ghost"
+                          size="icon"
+                          onClick={() => handleRemoveMember(member.id, member.username)}
+                          disabled={removeMemberMutation.isPending}
+                          data-testid={`button-remove-member-${member.id}`}
+                          title="Kick member from group"
+                        >
+                          <Trash2 className="h-4 w-4 text-destructive" />
+                        </Button>
+                      )}
+                    </div>
                   </div>
                 ))}
               </div>
