@@ -571,9 +571,9 @@ export function ChatArea({ friend, group, messages, onSendMessage, isSending, ws
                         size="sm"
                       />
                     )}
-                    <div className="flex flex-col gap-1">
+                    <div className="flex flex-col gap-1 max-w-[65%]">
                       <div
-                        className={`max-w-[65%] px-4 py-2 rounded-3xl shadow-sm ${
+                        className={`px-4 py-2 rounded-3xl shadow-sm ${
                           isSent
                             ? "bg-gradient-to-r from-primary to-primary/90 text-primary-foreground rounded-br-sm"
                             : "bg-card border border-card-border text-card-foreground rounded-bl-sm"
