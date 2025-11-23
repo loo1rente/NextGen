@@ -12,6 +12,7 @@ import SettingsPage from "@/pages/settings";
 import { useQuery, useMutation } from "@tanstack/react-query";
 import { apiRequest, queryClient } from "@/lib/queryClient";
 import { useToast } from "@/hooks/use-toast";
+import { NotificationService } from "@/lib/notification-service";
 import type { User, Message, Friendship } from "@shared/schema";
 
 interface FriendWithMessages {
@@ -149,10 +150,15 @@ export default function MessengerPage() {
         queryClient.invalidateQueries({ queryKey: ["/api/messages"] });
         // Show toast for direct messages from users not in current chat
         if (!data.groupId && data.senderId !== selectedFriendId) {
+          const messagePreview = data.content.substring(0, 50) + (data.content.length > 50 ? "..." : "");
           toast({
             title: "New message",
-            description: `${data.senderUsername}: ${data.content.substring(0, 50)}${data.content.length > 50 ? "..." : ""}`,
+            description: `${data.senderUsername}: ${messagePreview}`,
           });
+          // Also send browser notification
+          NotificationService.sendMessageNotification(data.senderUsername, data.content).catch(
+            (error) => console.log('Notification failed:', error)
+          );
         }
       }
       // Dispatch all messages including call signals to ChatArea via the same WebSocket

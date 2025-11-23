@@ -20,14 +20,16 @@
     <div id="root"></div>
     <script type="module" src="/src/main.tsx"></script>
     <script>
-      // Register Service Worker for push notifications
-      if ('serviceWorker' in navigator) {
-        navigator.serviceWorker.register('/sw.js').then((registration) => {
-          console.log('Service Worker registered:', registration);
-        }).catch((error) => {
-          console.log('Service Worker registration failed:', error);
-        });
-      }
+      // Register Service Worker for push notifications (runs after app loads)
+      window.addEventListener('load', () => {
+        if ('serviceWorker' in navigator) {
+          navigator.serviceWorker.register('/sw.js', { scope: '/' }).then((registration) => {
+            console.log('Service Worker registered:', registration);
+          }).catch((error) => {
+            console.log('Service Worker registration skipped (optional feature):', error);
+          });
+        }
+      });
     </script>
   </body>
 </html>
