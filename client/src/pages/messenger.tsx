@@ -155,6 +155,8 @@ export default function MessengerPage() {
           });
         }
       }
+      // Dispatch all messages including call signals to ChatArea via the same WebSocket
+      // The ChatArea component will handle these messages if a conversation is active
     };
 
     socket.onerror = (error) => {

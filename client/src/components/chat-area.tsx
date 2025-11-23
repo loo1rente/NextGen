@@ -40,10 +40,6 @@ export function ChatArea({ friend, group, messages, onSendMessage, isSending, ws
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const wsRef = useRef<WebSocket | null>(ws || null);
 
-  useEffect(() => {
-    wsRef.current = ws || null;
-  }, [ws]);
-
   // Call state
   const [callService, setCallService] = useState<CallService | null>(null);
   const [showCallModal, setShowCallModal] = useState(false);
@@ -52,6 +48,23 @@ export function ChatArea({ friend, group, messages, onSendMessage, isSending, ws
   const [remoteStream, setRemoteStream] = useState<MediaStream | null>(null);
   const [isCallConnected, setIsCallConnected] = useState(false);
   const [ongoingCallType, setOngoingCallType] = useState<'voice' | 'video' | null>(null);
+  
+  // Refs to keep track of current state in WebSocket handlers
+  const callServiceRef = useRef<CallService | null>(null);
+  const userRef = useRef(user);
+  const incomingCallDataRef = useRef<{ fromUserId: string; isVideo: boolean; offer: RTCSessionDescriptionInit } | null>(null);
+  const listenerSetupRef = useRef(false);
+
+  useEffect(() => {
+    wsRef.current = ws || null;
+  }, [ws]);
+
+  // Update refs whenever state changes
+  useEffect(() => {
+    callServiceRef.current = callService;
+    userRef.current = user;
+    incomingCallDataRef.current = incomingCallData;
+  }, [callService, user, incomingCallData]);
 
   const initializeCallService = useCallback((isVideo: boolean, recipientId: string) => {
     const service = new CallService(
@@ -179,42 +192,50 @@ export function ChatArea({ friend, group, messages, onSendMessage, isSending, ws
   };
 
   const getRecipientName = (): string => {
-    if (friend && friend.username) return friend.username;
-    if (group && group.name) return group.name;
-    return "Unknown";
+    const name = friend?.username || group?.name || "Unknown";
+    return String(name);
   };
 
-  // Setup WebSocket listener for incoming calls
+  // Setup WebSocket listener for incoming calls - attach once and use refs for state
   useEffect(() => {
-    if (!wsRef.current) return;
+    if (!wsRef.current || listenerSetupRef.current) return;
 
-    const handleMessage = async (event: MessageEvent) => {
+    const handleCallMessage = async (event: MessageEvent) => {
       try {
         const message = JSON.parse(event.data);
 
-        if (message.type === 'incoming-call' && !callService) {
-          const service = initializeCallService(message.isVideo, message.fromUserId);
-          setCallService(service);
-          setIncomingCallData({
-            fromUserId: message.fromUserId,
-            isVideo: message.isVideo,
-            offer: message.offer,
-          });
-          setShowCallModal(true);
+        if (message.type === 'incoming-call') {
+          if (!callServiceRef.current) {
+            console.log('Incoming call from', message.fromUserId, 'isVideo:', message.isVideo);
+            const service = initializeCallService(message.isVideo, message.fromUserId);
+            callServiceRef.current = service; // Update ref immediately
+            setIncomingCallData({
+              fromUserId: message.fromUserId,
+              isVideo: message.isVideo,
+              offer: message.offer,
+            });
+            setShowCallModal(true);
+          }
         }
 
-        if (message.type === 'call-answer' && callService) {
-          await callService.handleAnswer(message.answer);
-          setIsCallConnected(true);
+        if (message.type === 'call-answer') {
+          console.log('Call answer received');
+          if (callServiceRef.current) {
+            await callServiceRef.current.handleAnswer(message.answer);
+            setIsCallConnected(true);
+          }
         }
 
-        if (message.type === 'ice-candidate' && callService) {
-          await callService.handleIceCandidate(message.candidate);
+        if (message.type === 'ice-candidate') {
+          if (callServiceRef.current) {
+            await callServiceRef.current.handleIceCandidate(message.candidate);
+          }
         }
 
         if (message.type === 'call-ended') {
-          if (callService) {
-            callService.endCall();
+          console.log('Call ended');
+          if (callServiceRef.current) {
+            callServiceRef.current.endCall();
           }
         }
       } catch (error) {
@@ -222,13 +243,15 @@ export function ChatArea({ friend, group, messages, onSendMessage, isSending, ws
       }
     };
 
-    wsRef.current.addEventListener('message', handleMessage);
+    wsRef.current.addEventListener('message', handleCallMessage);
+    listenerSetupRef.current = true;
+
     return () => {
       if (wsRef.current) {
-        wsRef.current.removeEventListener('message', handleMessage);
+        wsRef.current.removeEventListener('message', handleCallMessage);
       }
     };
-  }, [callService, user]);
+  }, []);
 
   const scrollToBottom = () => {
     messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
