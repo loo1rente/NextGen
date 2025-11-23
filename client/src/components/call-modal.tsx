@@ -52,7 +52,12 @@ export function CallModal({
 
   useEffect(() => {
     if (localVideoRef.current && localStream) {
+      console.log('Setting local stream with tracks:', {
+        audioTracks: localStream.getAudioTracks().length,
+        videoTracks: localStream.getVideoTracks().length,
+      });
       localVideoRef.current.srcObject = localStream;
+      localVideoRef.current.play().catch(e => console.log('Local play error:', e));
     }
   }, [localStream]);
 
@@ -61,8 +66,12 @@ export function CallModal({
       console.log('Setting remote stream with tracks:', {
         audioTracks: remoteStream.getAudioTracks().length,
         videoTracks: remoteStream.getVideoTracks().length,
+        trackIds: remoteStream.getTracks().map(t => ({ kind: t.kind, id: t.id, enabled: t.enabled })),
       });
       remoteVideoRef.current.srcObject = remoteStream;
+      
+      // Force play
+      remoteVideoRef.current.play().catch(e => console.log('Play error (ok if not yet ready):', e));
     }
   }, [remoteStream]);
 

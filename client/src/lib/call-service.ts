@@ -113,13 +113,15 @@ export class CallService {
       });
       
       this.localStream.getTracks().forEach((track) => {
-        console.log('Adding track:', track.kind);
+        console.log('Adding track:', track.kind, 'enabled:', track.enabled);
+        track.enabled = true; // Make sure track is enabled
         this.peerConnection?.addTrack(track, this.localStream!);
       });
     }
 
     this.peerConnection.onicecandidate = (event) => {
       if (event.candidate) {
+        console.log('ICE candidate:', event.candidate.candidate);
         this.onSignal({
           type: 'ice-candidate',
           fromUserId: currentUserId,
@@ -129,29 +131,32 @@ export class CallService {
       }
     };
 
+    // Initialize remote stream
+    this.remoteStream = new MediaStream();
+
     this.peerConnection.ontrack = (event) => {
       console.log('Remote track received:', {
         kind: event.track.kind,
         enabled: event.track.enabled,
+        readyState: event.track.readyState,
         streams: event.streams.length,
       });
       
-      // Ensure we get the first stream
-      if (event.streams && event.streams.length > 0) {
-        this.remoteStream = event.streams[0];
-      } else if (event.track) {
-        // Fallback: create stream from track if no streams provided
-        if (!this.remoteStream) {
-          this.remoteStream = new MediaStream();
-        }
+      // Always add track to our remote stream
+      if (this.remoteStream && !this.remoteStream.getTracks().find(t => t.id === event.track.id)) {
         this.remoteStream.addTrack(event.track);
+        console.log('Track added to remote stream');
       }
+      
+      // Enable the track
+      event.track.enabled = true;
       
       console.log('Remote stream ready:', {
         audioTracks: this.remoteStream?.getAudioTracks().length,
         videoTracks: this.remoteStream?.getVideoTracks().length,
       });
       
+      // Call callback to update React state
       this.onRemoteStream(this.remoteStream!);
       this.clearCallTimeout();
     };
