@@ -549,94 +549,76 @@ export function ChatArea({ friend, group, messages, onSendMessage, isSending, ws
                         size="sm"
                       />
                     )}
-                    <div className="flex flex-col gap-1">
-                      <div
-                        className={`max-w-[65%] px-4 py-2 rounded-3xl shadow-sm ${
-                          isSent
-                            ? "bg-gradient-to-r from-primary to-primary/90 text-primary-foreground rounded-br-sm"
-                            : "bg-card border border-card-border text-card-foreground rounded-bl-sm"
-                        }`}
-                      >
-                        {editingMessageId === message.id ? (
-                          <div className="flex gap-2">
-                            <input
-                              type="text"
-                              value={editingContent}
-                              onChange={(e) => setEditingContent(e.target.value)}
-                              className="flex-1 bg-background/20 rounded px-2 py-1 text-sm text-current"
-                              data-testid="input-edit-message"
-                            />
-                            <button
-                              onClick={() => handleEditMessage(message.id, editingContent)}
-                              className="text-xs font-semibold hover:opacity-80"
-                              data-testid="button-confirm-edit"
-                            >
-                              {t('messenger.save')}
-                            </button>
+                    <div
+                      className={`max-w-[65%] px-4 py-2 rounded-3xl shadow-sm ${
+                        isSent
+                          ? "bg-gradient-to-r from-primary to-primary/90 text-primary-foreground rounded-br-sm"
+                          : "bg-card border border-card-border text-card-foreground rounded-bl-sm"
+                      }`}
+                    >
+                      {editingMessageId === message.id ? (
+                        <div className="flex gap-2">
+                          <input
+                            type="text"
+                            value={editingContent}
+                            onChange={(e) => setEditingContent(e.target.value)}
+                            className="flex-1 bg-background/20 rounded px-2 py-1 text-sm text-current"
+                            data-testid="input-edit-message"
+                          />
+                          <button
+                            onClick={() => handleEditMessage(message.id, editingContent)}
+                            className="text-xs font-semibold hover:opacity-80"
+                            data-testid="button-confirm-edit"
+                          >
+                            {t('messenger.save')}
+                          </button>
+                        </div>
+                      ) : (
+                        <>
+                          <p className={`text-sm leading-relaxed break-words ${message.isDeleted ? 'italic opacity-50' : ''}`} data-testid={`text-message-${message.id}`}>
+                            {message.isDeleted ? t('messenger.deletedMessage') : message.content}
+                            {message.editedAt && !message.isDeleted && <span className="text-xs opacity-75 ml-1">{t('messenger.edited')}</span>}
+                          </p>
+                          <div className="flex items-center gap-1 mt-1 justify-end">
+                            <span className="text-xs opacity-75 font-mono">
+                              {format(new Date(message.createdAt), "HH:mm")}
+                            </span>
+                            {isSent && (
+                              message.isRead ? (
+                                <CheckCheck className="h-3 w-3" data-testid="icon-read-receipt" />
+                              ) : message.isDelivered ? (
+                                <Check className="h-3 w-3" data-testid="icon-delivered-receipt" />
+                              ) : (
+                                <Check className="h-3 w-3 opacity-50" data-testid="icon-sent-receipt" />
+                              )
+                            )}
                           </div>
-                        ) : (
-                          <>
-                            <p className={`text-sm leading-relaxed break-words ${message.isDeleted ? 'italic opacity-50' : ''}`} data-testid={`text-message-${message.id}`}>
-                              {message.isDeleted ? t('messenger.deletedMessage') : message.content}
-                              {message.editedAt && !message.isDeleted && <span className="text-xs opacity-75 ml-1">{t('messenger.edited')}</span>}
-                            </p>
-                            <div className="flex items-center gap-1 mt-1 justify-end">
-                              <span className="text-xs opacity-75 font-mono">
-                                {format(new Date(message.createdAt), "HH:mm")}
-                              </span>
-                              {isSent && (
-                                message.isRead ? (
-                                  <CheckCheck className="h-3 w-3" data-testid="icon-read-receipt" />
-                                ) : message.isDelivered ? (
-                                  <Check className="h-3 w-3" data-testid="icon-delivered-receipt" />
-                                ) : (
-                                  <Check className="h-3 w-3 opacity-50" data-testid="icon-sent-receipt" />
-                                )
-                              )}
-                            </div>
-                          </>
-                        )}
-                      </div>
-                      {!message.isDeleted && isSent && (
-                        <div className="flex gap-1 px-2 opacity-0 group-hover:opacity-100 transition-opacity">
-                          <button
-                            onClick={() => {
-                              setEditingMessageId(message.id);
-                              setEditingContent(message.content);
-                            }}
-                            className="p-1 hover:bg-muted rounded"
-                            data-testid="button-edit-message"
-                            title="Edit"
-                          >
-                            <Edit2 className="h-3 w-3" />
-                          </button>
-                          <button
-                            onClick={() => handleDeleteMessage(message.id)}
-                            className="p-1 hover:bg-destructive/20 rounded"
-                            data-testid="button-delete-message"
-                            title="Delete"
-                          >
-                            <Trash2 className="h-3 w-3" />
-                          </button>
-                        </div>
-                      )}
-                      {reactions[message.id] && reactions[message.id].length > 0 && (
-                        <div className="flex flex-wrap gap-1 px-2">
-                          {Array.from(new Set(reactions[message.id].map(r => r.emoji))).map(emoji => (
-                            <div key={emoji} className="text-xs bg-muted px-2 py-1 rounded">
-                              {emoji} {reactions[message.id].filter(r => r.emoji === emoji).length}
-                            </div>
-                          ))}
-                          <button
-                            onClick={() => handleAddReaction(message.id, '👍')}
-                            className="p-1 hover:bg-muted rounded"
-                            data-testid={`button-react-${message.id}`}
-                          >
-                            <SmilePlus className="h-3 w-3" />
-                          </button>
-                        </div>
+                        </>
                       )}
                     </div>
+                    {!message.isDeleted && isSent && (
+                      <div className="flex gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
+                        <button
+                          onClick={() => {
+                            setEditingMessageId(message.id);
+                            setEditingContent(message.content);
+                          }}
+                          className="p-1 hover:bg-muted rounded"
+                          data-testid="button-edit-message"
+                          title="Edit"
+                        >
+                          <Edit2 className="h-3 w-3" />
+                        </button>
+                        <button
+                          onClick={() => handleDeleteMessage(message.id)}
+                          className="p-1 hover:bg-destructive/20 rounded"
+                          data-testid="button-delete-message"
+                          title="Delete"
+                        >
+                          <Trash2 className="h-3 w-3" />
+                        </button>
+                      </div>
+                    )}
                   </div>
                 </div>
               );
