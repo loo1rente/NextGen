@@ -655,7 +655,7 @@ export function ChatArea({ friend, group, messages, onSendMessage, isSending, ws
                     )}
                   </div>
                   {showReactionPicker === message.id && (
-                    <div className="flex gap-1 mt-2 ml-12">
+                    <div className="flex gap-1 mt-1 ml-2">
                       {['👍', '❤️', '😂', '😮', '😢', '🔥'].map(emoji => (
                         <button
                           key={emoji}
@@ -669,7 +669,7 @@ export function ChatArea({ friend, group, messages, onSendMessage, isSending, ws
                     </div>
                   )}
                   {reactions[message.id] && reactions[message.id].length > 0 && (
-                    <div className="flex gap-1 mt-2 ml-12 flex-wrap">
+                    <div className="flex gap-1 mt-1 ml-2 flex-wrap">
                       {Object.entries(
                         reactions[message.id].reduce((acc: Record<string, number>, r: any) => {
                           acc[r.emoji] = (acc[r.emoji] || 0) + 1;
