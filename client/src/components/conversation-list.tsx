@@ -59,8 +59,8 @@ export function ConversationList({
   ];
 
   return (
-    <div className="hidden md:flex md:w-72 lg:w-80 border-r border-border flex-col h-full bg-card shrink-0">
-      <div className="p-3 border-b border-card-border space-y-3">
+    <div className="hidden md:flex md:w-72 lg:w-80 border-r border-border flex-col h-full bg-card shrink-0 overflow-hidden">
+      <div className="px-3 py-3 border-b border-card-border space-y-3 flex-shrink-0">
         <div className="flex items-center gap-2">
           <div className="relative flex-1">
             <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
@@ -91,18 +91,19 @@ export function ConversationList({
         onOpenChange={setCreateGroupOpen}
       />
 
-      <ScrollArea className="flex-1">
-        {allConversations.length === 0 ? (
-          <div className="w-full p-8 text-center text-muted-foreground">
-            <p className="text-sm">
-              {searchQuery ? t('messenger.noConversations') : t('messenger.noConversations')}
-            </p>
-            <p className="text-xs mt-1">
-              {searchQuery ? "Try a different search" : t('messenger.noConversationsDesc')}
-            </p>
-          </div>
-        ) : (
-          <div className="w-full p-2 space-y-1">
+      <ScrollArea className="flex-1 w-full overflow-hidden">
+        <div className="h-full w-full flex flex-col">
+          {allConversations.length === 0 ? (
+            <div className="w-full p-8 text-center text-muted-foreground">
+              <p className="text-sm">
+                {searchQuery ? t('messenger.noConversations') : t('messenger.noConversations')}
+              </p>
+              <p className="text-xs mt-1">
+                {searchQuery ? "Try a different search" : t('messenger.noConversationsDesc')}
+              </p>
+            </div>
+          ) : (
+            <div className="w-full px-2 py-1 space-y-1">
             {allConversations.map((conv) => {
               if (conv.type === 'friend') {
                 const isSelected = conv.friend.id === selectedFriendId;
@@ -207,8 +208,9 @@ export function ConversationList({
                 );
               }
             })}
-          </div>
-        )}
+            </div>
+          )}
+        </div>
       </ScrollArea>
     </div>
   );
