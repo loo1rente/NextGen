@@ -44,6 +44,7 @@ export function ChatArea({ friend, group, messages, onSendMessage, isSending, ws
   const [editingMessageId, setEditingMessageId] = useState<string | null>(null);
   const [editingContent, setEditingContent] = useState("");
   const [reactions, setReactions] = useState<Record<string, any[]>>({});
+  const [showReactionPicker, setShowReactionPicker] = useState<string | null>(null);
   const typingTimeoutRef = useRef<NodeJS.Timeout | null>(null);
   const scrollAreaRef = useRef<HTMLDivElement>(null);
   const messagesEndRef = useRef<HTMLDivElement>(null);
@@ -378,8 +379,21 @@ export function ChatArea({ friend, group, messages, onSendMessage, isSending, ws
         ...reactions,
         [messageId]: [...existing, { emoji, userId: user?.id }]
       });
+      setShowReactionPicker(null);
     } catch (error) {
       console.error('Failed to add reaction');
+    }
+  };
+
+  const handleRemoveReaction = async (messageId: string, emoji: string) => {
+    try {
+      await fetch(`/api/messages/${messageId}/reactions/${emoji}`, { method: 'DELETE' });
+      setReactions({
+        ...reactions,
+        [messageId]: (reactions[messageId] || []).filter(r => r.emoji !== emoji)
+      });
+    } catch (error) {
+      console.error('Failed to remove reaction');
     }
   };
 
@@ -604,30 +618,75 @@ export function ChatArea({ friend, group, messages, onSendMessage, isSending, ws
                         </>
                       )}
                     </div>
-                    {!message.isDeleted && isSent && (
+                    {!message.isDeleted && (
                       <div className="flex gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
                         <button
-                          onClick={() => {
-                            setEditingMessageId(message.id);
-                            setEditingContent(message.content);
-                          }}
+                          onClick={() => setShowReactionPicker(showReactionPicker === message.id ? null : message.id)}
                           className="p-1 hover:bg-muted rounded"
-                          data-testid="button-edit-message"
-                          title="Edit"
+                          data-testid="button-add-reaction"
+                          title="React"
                         >
-                          <Edit2 className="h-3 w-3" />
+                          <SmilePlus className="h-3 w-3" />
                         </button>
-                        <button
-                          onClick={() => handleDeleteMessage(message.id)}
-                          className="p-1 hover:bg-destructive/20 rounded"
-                          data-testid="button-delete-message"
-                          title="Delete"
-                        >
-                          <Trash2 className="h-3 w-3" />
-                        </button>
+                        {isSent && (
+                          <>
+                            <button
+                              onClick={() => {
+                                setEditingMessageId(message.id);
+                                setEditingContent(message.content);
+                              }}
+                              className="p-1 hover:bg-muted rounded"
+                              data-testid="button-edit-message"
+                              title="Edit"
+                            >
+                              <Edit2 className="h-3 w-3" />
+                            </button>
+                            <button
+                              onClick={() => handleDeleteMessage(message.id)}
+                              className="p-1 hover:bg-destructive/20 rounded"
+                              data-testid="button-delete-message"
+                              title="Delete"
+                            >
+                              <Trash2 className="h-3 w-3" />
+                            </button>
+                          </>
+                        )}
                       </div>
                     )}
                   </div>
+                  {showReactionPicker === message.id && (
+                    <div className="flex gap-1 mt-2 ml-12">
+                      {['👍', '❤️', '😂', '😮', '😢', '🔥'].map(emoji => (
+                        <button
+                          key={emoji}
+                          onClick={() => handleAddReaction(message.id, emoji)}
+                          className="text-lg hover:scale-125 transition-transform"
+                          data-testid={`button-emoji-${emoji}`}
+                        >
+                          {emoji}
+                        </button>
+                      ))}
+                    </div>
+                  )}
+                  {reactions[message.id] && reactions[message.id].length > 0 && (
+                    <div className="flex gap-1 mt-2 ml-12 flex-wrap">
+                      {Object.entries(
+                        reactions[message.id].reduce((acc: Record<string, number>, r: any) => {
+                          acc[r.emoji] = (acc[r.emoji] || 0) + 1;
+                          return acc;
+                        }, {})
+                      ).map(([emoji, count]) => (
+                        <button
+                          key={emoji}
+                          onClick={() => handleRemoveReaction(message.id, emoji)}
+                          className="px-2 py-1 bg-muted rounded-full text-xs hover:bg-muted/80 flex items-center gap-1"
+                          data-testid={`button-reaction-${emoji}-${message.id}`}
+                        >
+                          {emoji} {count}
+                        </button>
+                      ))}
+                    </div>
+                  )}
                 </div>
               );
             })}
