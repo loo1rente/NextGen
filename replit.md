@@ -38,7 +38,7 @@ Preferred communication style: Simple, everyday language.
 
 **Server Framework:**
 - Express.js with TypeScript for API routes and middleware
-- Session-based authentication using express-session with MemoryStore
+- Session-based authentication using express-session with PostgreSQL backend (connect-pg-simple)
 - WebSocket server (ws library) for real-time bidirectional communication
 - Separate development and production entry points for different serving strategies
 
@@ -77,7 +77,9 @@ Preferred communication style: Simple, everyday language.
 
 **Session Management:**
 - Cookie-based sessions with configurable secret
-- Session data stored in-memory (MemoryStore) with 24-hour cleanup cycle
+- Session data stored in PostgreSQL database (connect-pg-simple) with automatic table creation
+- Sessions persist across server restarts and code updates
+- 7-day session expiration for security
 - HttpOnly cookies for security
 - User ID stored in session upon successful login/registration
 
@@ -156,7 +158,7 @@ Preferred communication style: Simple, everyday language.
 **Authentication:**
 - bcrypt: Password hashing
 - express-session: Session middleware
-- connect-pg-simple: PostgreSQL session store (available but using MemoryStore)
+- connect-pg-simple: PostgreSQL session store for persistent sessions across server restarts
 
 **State Management:**
 - TanStack React Query: Server state and caching

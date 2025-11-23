@@ -8,11 +8,12 @@ import express, {
 } from "express";
 
 import session from "express-session";
-import createMemoryStore from "memorystore";
+import createPostgresStore from "connect-pg-simple";
 
 import { registerRoutes } from "./routes";
+import { pool } from "./db";
 
-const MemoryStore = createMemoryStore(session);
+const PostgresStore = createPostgresStore(session);
 
 export function log(message: string, source = "express") {
   const formattedTime = new Date().toLocaleTimeString("en-US", {
@@ -40,14 +41,19 @@ app.use(express.json({
 }));
 app.use(express.urlencoded({ extended: false, limit: "10mb" }));
 
+// Initialize session store with PostgreSQL
+const sessionStore = new PostgresStore({
+  pool: pool,
+  tableName: "session",
+  createTableIfMissing: true,
+});
+
 app.use(
   session({
     secret: process.env.SESSION_SECRET || "nextgen-messenger-secret-key",
     resave: false,
     saveUninitialized: false,
-    store: new MemoryStore({
-      checkPeriod: 86400000,
-    }),
+    store: sessionStore,
     cookie: {
       maxAge: 7 * 24 * 60 * 60 * 1000,
       httpOnly: true,
