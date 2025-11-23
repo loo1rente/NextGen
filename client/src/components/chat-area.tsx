@@ -2,7 +2,7 @@ import { useState, useEffect, useRef, useCallback } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { ScrollArea } from "@/components/ui/scroll-area";
-import { Send, MoreVertical, Phone, Video, UserPlus, Check, CheckCheck, Trash2, Edit2, SmilePlus, BlockCircle } from "lucide-react";
+import { Send, MoreVertical, Phone, Video, UserPlus, Check, CheckCheck, Trash2, Edit2, SmilePlus, Ban } from "lucide-react";
 import { formatDistanceToNow, format } from "date-fns";
 import { useAuth } from "@/lib/auth-context";
 import { useLanguage } from "@/lib/language-context";
@@ -502,7 +502,7 @@ export function ChatArea({ friend, group, messages, onSendMessage, isSending, ws
           {!group && (
             <>
               <Button variant="ghost" size="icon" onClick={handleBlockUser} data-testid="button-block-user" title="Block user">
-                <BlockCircle className="h-5 w-5" />
+                <Ban className="h-5 w-5" />
               </Button>
               <Button variant="ghost" size="icon" data-testid="button-chat-menu">
                 <MoreVertical className="h-5 w-5" />
