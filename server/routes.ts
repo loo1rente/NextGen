@@ -297,6 +297,13 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return res.status(403).json({ message: "You can only message friends" });
       }
 
+      // Check if either user has blocked the other
+      const isUserBlocked = await storage.isUserBlocked(userId, receiverId!);
+      const isReceiverBlockedBySender = await storage.isUserBlocked(receiverId!, userId);
+      if (isUserBlocked || isReceiverBlockedBySender) {
+        return res.status(403).json({ message: "Cannot message this user - blocked" });
+      }
+
       const message = await storage.createMessage({
         senderId: userId,
         receiverId,

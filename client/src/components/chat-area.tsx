@@ -45,6 +45,7 @@ export function ChatArea({ friend, group, messages, onSendMessage, isSending, ws
   const [editingContent, setEditingContent] = useState("");
   const [reactions, setReactions] = useState<Record<string, any[]>>({});
   const [showReactionPicker, setShowReactionPicker] = useState<string | null>(null);
+  const [isBlocked, setIsBlocked] = useState(false);
   const typingTimeoutRef = useRef<NodeJS.Timeout | null>(null);
   const scrollAreaRef = useRef<HTMLDivElement>(null);
   const messagesEndRef = useRef<HTMLDivElement>(null);
@@ -407,7 +408,7 @@ export function ChatArea({ friend, group, messages, onSendMessage, isSending, ws
     }
   };
 
-  // Load reactions for all messages
+  // Load reactions for all messages and check block status
   useEffect(() => {
     const loadReactions = async () => {
       const newReactions: Record<string, any[]> = {};
@@ -429,6 +430,28 @@ export function ChatArea({ friend, group, messages, onSendMessage, isSending, ws
       loadReactions();
     }
   }, [messages.map(m => m.id).join(',')]);
+
+  // Check block status when friend changes
+  useEffect(() => {
+    const checkBlockStatus = async () => {
+      if (!friend || !user) {
+        setIsBlocked(false);
+        return;
+      }
+      
+      try {
+        const res = await fetch(`/api/users/${user.id}/block/${friend.id}`);
+        if (res.ok) {
+          const data = await res.json();
+          setIsBlocked(data.isBlocked);
+        }
+      } catch (error) {
+        console.error('Failed to check block status');
+      }
+    };
+    
+    checkBlockStatus();
+  }, [friend?.id, user?.id]);
 
   // Setup typing indicator WebSocket handler
   useEffect(() => {
@@ -726,6 +749,11 @@ export function ChatArea({ friend, group, messages, onSendMessage, isSending, ws
             {Array.from(typingUsers).slice(0, 2).join(', ')} {typingUsers.size === 1 ? t('messenger.isTyping') : t('messenger.areTyping')}...
           </div>
         )}
+        {isBlocked && (
+          <div className="text-xs text-destructive mb-2 px-2 py-1 bg-destructive/10 rounded">
+            You cannot message this user - contact is blocked
+          </div>
+        )}
         <form onSubmit={handleSubmit} className="flex items-center gap-2">
           <Input
             type="text"
@@ -733,13 +761,13 @@ export function ChatArea({ friend, group, messages, onSendMessage, isSending, ws
             value={messageInput}
             onChange={handleTyping}
             className="flex-1 rounded-full h-9 text-sm"
-            disabled={isSending}
+            disabled={isSending || isBlocked}
             data-testid="input-message"
           />
           <Button
             type="submit"
             size="icon"
-            disabled={!messageInput.trim() || isSending}
+            disabled={!messageInput.trim() || isSending || isBlocked}
             className="rounded-full shrink-0 h-9 w-9"
             data-testid="button-send-message"
           >
