@@ -554,6 +554,130 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Delete message
+  app.delete("/api/messages/:messageId", async (req, res) => {
+    try {
+      const userId = (req.session as any).userId;
+      if (!userId) {
+        return res.status(401).json({ message: "Not authenticated" });
+      }
+      const { messageId } = req.params;
+      await storage.deleteMessage(messageId);
+      res.json({ message: "Message deleted" });
+    } catch (error: any) {
+      res.status(400).json({ message: error.message || "Failed to delete message" });
+    }
+  });
+
+  // Edit message
+  app.patch("/api/messages/:messageId", async (req, res) => {
+    try {
+      const userId = (req.session as any).userId;
+      if (!userId) {
+        return res.status(401).json({ message: "Not authenticated" });
+      }
+      const { messageId } = req.params;
+      const { content } = req.body;
+      if (!content) {
+        return res.status(400).json({ message: "Content required" });
+      }
+      const message = await storage.editMessage(messageId, content);
+      res.json(message);
+    } catch (error: any) {
+      res.status(400).json({ message: error.message || "Failed to edit message" });
+    }
+  });
+
+  // Get message reactions
+  app.get("/api/messages/:messageId/reactions", async (req, res) => {
+    try {
+      const { messageId } = req.params;
+      const reactions = await storage.getMessageReactions(messageId);
+      res.json(reactions);
+    } catch (error: any) {
+      res.status(400).json({ message: error.message || "Failed to fetch reactions" });
+    }
+  });
+
+  // Add reaction
+  app.post("/api/messages/:messageId/reactions", async (req, res) => {
+    try {
+      const userId = (req.session as any).userId;
+      if (!userId) {
+        return res.status(401).json({ message: "Not authenticated" });
+      }
+      const { messageId } = req.params;
+      const { emoji } = req.body;
+      if (!emoji) {
+        return res.status(400).json({ message: "Emoji required" });
+      }
+      const reaction = await storage.addReaction(messageId, userId, emoji);
+      res.json(reaction);
+    } catch (error: any) {
+      res.status(400).json({ message: error.message || "Failed to add reaction" });
+    }
+  });
+
+  // Remove reaction
+  app.delete("/api/messages/:messageId/reactions/:emoji", async (req, res) => {
+    try {
+      const userId = (req.session as any).userId;
+      if (!userId) {
+        return res.status(401).json({ message: "Not authenticated" });
+      }
+      const { messageId, emoji } = req.params;
+      await storage.removeReaction(messageId, userId, emoji);
+      res.json({ message: "Reaction removed" });
+    } catch (error: any) {
+      res.status(400).json({ message: error.message || "Failed to remove reaction" });
+    }
+  });
+
+  // Block user
+  app.post("/api/users/:userId/block/:blockedUserId", async (req, res) => {
+    try {
+      const userId = (req.session as any).userId;
+      if (!userId) {
+        return res.status(401).json({ message: "Not authenticated" });
+      }
+      const { blockedUserId } = req.params;
+      await storage.blockUser(userId, blockedUserId);
+      res.json({ message: "User blocked" });
+    } catch (error: any) {
+      res.status(400).json({ message: error.message || "Failed to block user" });
+    }
+  });
+
+  // Unblock user
+  app.delete("/api/users/:userId/block/:blockedUserId", async (req, res) => {
+    try {
+      const userId = (req.session as any).userId;
+      if (!userId) {
+        return res.status(401).json({ message: "Not authenticated" });
+      }
+      const { blockedUserId } = req.params;
+      await storage.unblockUser(userId, blockedUserId);
+      res.json({ message: "User unblocked" });
+    } catch (error: any) {
+      res.status(400).json({ message: error.message || "Failed to unblock user" });
+    }
+  });
+
+  // Check if user is blocked
+  app.get("/api/users/:userId/is-blocked/:targetUserId", async (req, res) => {
+    try {
+      const userId = (req.session as any).userId;
+      if (!userId) {
+        return res.status(401).json({ message: "Not authenticated" });
+      }
+      const { targetUserId } = req.params;
+      const isBlocked = await storage.isUserBlocked(userId, targetUserId);
+      res.json({ isBlocked });
+    } catch (error: any) {
+      res.status(400).json({ message: error.message || "Failed to check if blocked" });
+    }
+  });
+
   const httpServer = createServer(app);
 
   const wss = new WebSocketServer({ server: httpServer, path: '/ws' });
@@ -617,6 +741,36 @@ export async function registerRoutes(app: Express): Promise<Server> {
               fromUserId: userId,
             }));
           }
+        }
+
+        // Handle typing indicator
+        if (message.type === 'typing' && message.toUserId) {
+          const targetWs = connectedUsers.get(message.toUserId);
+          if (targetWs && targetWs.readyState === 1) {
+            targetWs.send(JSON.stringify({
+              type: 'typing',
+              fromUserId: userId,
+              isTyping: message.isTyping,
+            }));
+          }
+        }
+
+        // Group typing indicator
+        if (message.type === 'group-typing' && message.groupId) {
+          const groupMembers = await storage.getGroupMembers(message.groupId);
+          groupMembers.forEach(member => {
+            if (member.userId !== userId) {
+              const memberWs = connectedUsers.get(member.userId);
+              if (memberWs && memberWs.readyState === 1) {
+                memberWs.send(JSON.stringify({
+                  type: 'group-typing',
+                  groupId: message.groupId,
+                  fromUserId: userId,
+                  isTyping: message.isTyping,
+                }));
+              }
+            }
+          });
         }
       } catch (error) {
         console.error('WebSocket message error:', error);

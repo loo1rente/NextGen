@@ -46,6 +46,9 @@ export const messages = pgTable("messages", {
   groupId: varchar("group_id").references(() => groups.id, { onDelete: "cascade" }),
   content: text("content").notNull(),
   isRead: boolean("is_read").notNull().default(false),
+  isDelivered: boolean("is_delivered").notNull().default(false),
+  isDeleted: boolean("is_deleted").notNull().default(false),
+  editedAt: timestamp("edited_at"),
   createdAt: timestamp("created_at").defaultNow().notNull(),
 });
 
@@ -66,6 +69,21 @@ export const notifications = pgTable("notifications", {
   message: text("message").notNull(),
   relatedId: varchar("related_id"),
   isRead: boolean("is_read").notNull().default(false),
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+});
+
+export const messageReactions = pgTable("message_reactions", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  messageId: varchar("message_id").notNull().references(() => messages.id, { onDelete: "cascade" }),
+  userId: varchar("user_id").notNull().references(() => users.id, { onDelete: "cascade" }),
+  emoji: text("emoji").notNull(),
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+});
+
+export const blockedUsers = pgTable("blocked_users", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  userId: varchar("user_id").notNull().references(() => users.id, { onDelete: "cascade" }),
+  blockedUserId: varchar("blocked_user_id").notNull().references(() => users.id, { onDelete: "cascade" }),
   createdAt: timestamp("created_at").defaultNow().notNull(),
 });
 
@@ -141,6 +159,32 @@ export const notificationsRelations = relations(notifications, ({ one }) => ({
   }),
 }));
 
+export const messageReactionsRelations = relations(messageReactions, ({ one }) => ({
+  message: one(messages, {
+    fields: [messageReactions.messageId],
+    references: [messages.id],
+    relationName: "reactions",
+  }),
+  user: one(users, {
+    fields: [messageReactions.userId],
+    references: [users.id],
+    relationName: "userReactions",
+  }),
+}));
+
+export const blockedUsersRelations = relations(blockedUsers, ({ one }) => ({
+  user: one(users, {
+    fields: [blockedUsers.userId],
+    references: [users.id],
+    relationName: "userBlockingList",
+  }),
+  blockedUser: one(users, {
+    fields: [blockedUsers.blockedUserId],
+    references: [users.id],
+    relationName: "userBlockedByList",
+  }),
+}));
+
 export const insertUserSchema = createInsertSchema(users).pick({
   username: true,
   password: true,
@@ -183,3 +227,5 @@ export type InsertMessage = z.infer<typeof insertMessageSchema>;
 export type Message = typeof messages.$inferSelect;
 export type InsertNotification = z.infer<typeof insertNotificationSchema>;
 export type Notification = typeof notifications.$inferSelect;
+export type MessageReaction = typeof messageReactions.$inferSelect;
+export type BlockedUser = typeof blockedUsers.$inferSelect;

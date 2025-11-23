@@ -1,4 +1,4 @@
-import { users, friendships, messages, groups, groupMembers, notifications, typingStatus, type User, type InsertUser, type Friendship, type InsertFriendship, type Message, type InsertMessage, type Group, type InsertGroup, type GroupMember, type Notification, type InsertNotification } from "@shared/schema";
+import { users, friendships, messages, groups, groupMembers, notifications, typingStatus, messageReactions, blockedUsers, type User, type InsertUser, type Friendship, type InsertFriendship, type Message, type InsertMessage, type Group, type InsertGroup, type GroupMember, type Notification, type InsertNotification, type MessageReaction, type BlockedUser } from "@shared/schema";
 import { db } from "./db";
 import { eq, and, or, desc, sql, ilike, like, inArray } from "drizzle-orm";
 
@@ -33,6 +33,18 @@ export interface IStorage {
   createNotification(notification: InsertNotification): Promise<Notification>;
   getNotifications(userId: string): Promise<Notification[]>;
   markNotificationAsRead(notificationId: string): Promise<Notification>;
+  
+  deleteMessage(messageId: string): Promise<void>;
+  editMessage(messageId: string, content: string): Promise<Message>;
+  markMessageAsDelivered(messageId: string): Promise<void>;
+  
+  addReaction(messageId: string, userId: string, emoji: string): Promise<MessageReaction>;
+  removeReaction(messageId: string, userId: string, emoji: string): Promise<void>;
+  getMessageReactions(messageId: string): Promise<MessageReaction[]>;
+  
+  blockUser(userId: string, blockedUserId: string): Promise<BlockedUser>;
+  unblockUser(userId: string, blockedUserId: string): Promise<void>;
+  isUserBlocked(userId: string, targetUserId: string): Promise<boolean>;
 }
 
 export class DatabaseStorage implements IStorage {
@@ -298,6 +310,47 @@ export class DatabaseStorage implements IStorage {
   async markNotificationAsRead(notificationId: string): Promise<Notification> {
     const [notification] = await db.update(notifications).set({ isRead: true }).where(eq(notifications.id, notificationId)).returning();
     return notification;
+  }
+
+  async deleteMessage(messageId: string): Promise<void> {
+    await db.update(messages).set({ isDeleted: true }).where(eq(messages.id, messageId));
+  }
+
+  async editMessage(messageId: string, content: string): Promise<Message> {
+    const [message] = await db.update(messages).set({ content, editedAt: new Date() }).where(eq(messages.id, messageId)).returning();
+    return message;
+  }
+
+  async markMessageAsDelivered(messageId: string): Promise<void> {
+    await db.update(messages).set({ isDelivered: true }).where(eq(messages.id, messageId));
+  }
+
+  async addReaction(messageId: string, userId: string, emoji: string): Promise<MessageReaction> {
+    const [reaction] = await db.insert(messageReactions).values({ messageId, userId, emoji }).returning();
+    return reaction;
+  }
+
+  async removeReaction(messageId: string, userId: string, emoji: string): Promise<void> {
+    await db.delete(messageReactions).where(and(eq(messageReactions.messageId, messageId), eq(messageReactions.userId, userId), eq(messageReactions.emoji, emoji)));
+  }
+
+  async getMessageReactions(messageId: string): Promise<MessageReaction[]> {
+    const results = await db.select().from(messageReactions).where(eq(messageReactions.messageId, messageId));
+    return results;
+  }
+
+  async blockUser(userId: string, blockedUserId: string): Promise<BlockedUser> {
+    const [block] = await db.insert(blockedUsers).values({ userId, blockedUserId }).returning();
+    return block;
+  }
+
+  async unblockUser(userId: string, blockedUserId: string): Promise<void> {
+    await db.delete(blockedUsers).where(and(eq(blockedUsers.userId, userId), eq(blockedUsers.blockedUserId, blockedUserId)));
+  }
+
+  async isUserBlocked(userId: string, targetUserId: string): Promise<boolean> {
+    const [block] = await db.select().from(blockedUsers).where(and(eq(blockedUsers.userId, userId), eq(blockedUsers.blockedUserId, targetUserId)));
+    return !!block;
   }
 }
 
