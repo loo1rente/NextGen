@@ -1,6 +1,6 @@
 import { users, friendships, messages, groups, groupMembers, notifications, typingStatus, type User, type InsertUser, type Friendship, type InsertFriendship, type Message, type InsertMessage, type Group, type InsertGroup, type GroupMember, type Notification, type InsertNotification } from "@shared/schema";
 import { db } from "./db";
-import { eq, and, or, desc, sql, ilike, like } from "drizzle-orm";
+import { eq, and, or, desc, sql, ilike, like, inArray } from "drizzle-orm";
 
 export interface IStorage {
   getUser(id: string): Promise<User | undefined>;
@@ -252,7 +252,7 @@ export class DatabaseStorage implements IStorage {
     const groupIds = userGroups.map(gm => gm.groupId);
     if (groupIds.length === 0) return [];
     
-    const results = await db.select().from(groups).where(sql`${groups.id} = ANY(ARRAY[${sql.join(groupIds.map(id => sql`${id}`), sql`,`)}])`);
+    const results = await db.select().from(groups).where(inArray(groups.id, groupIds));
     return results;
   }
 
