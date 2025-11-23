@@ -401,10 +401,19 @@ export function ChatArea({ friend, group, messages, onSendMessage, isSending, ws
   const handleBlockUser = async () => {
     if (!friend || !user) return;
     try {
-      await fetch(`/api/users/${user.id}/block/${friend.id}`, { method: 'POST' });
-      toast({ title: "User blocked" });
+      if (isBlocked) {
+        // Unblock user
+        await fetch(`/api/users/${user.id}/block/${friend.id}`, { method: 'DELETE' });
+        setIsBlocked(false);
+        toast({ title: "User unblocked" });
+      } else {
+        // Block user
+        await fetch(`/api/users/${user.id}/block/${friend.id}`, { method: 'POST' });
+        setIsBlocked(true);
+        toast({ title: "User blocked" });
+      }
     } catch (error) {
-      toast({ title: "Error blocking user", variant: "destructive" });
+      toast({ title: "Error updating block status", variant: "destructive" });
     }
   };
 
