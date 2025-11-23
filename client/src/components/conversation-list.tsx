@@ -131,7 +131,7 @@ export function ConversationList({
                       </div>
 
                       <div className="flex-1 min-w-0">
-                        <div className="flex items-baseline justify-between gap-2 mb-1">
+                        <div className="flex items-baseline justify-between gap-2 mb-0.5">
                           <p className="font-semibold text-sm truncate">{conv.friend.username}</p>
                           {conv.lastMessage && (
                             <span className="text-xs text-muted-foreground font-mono shrink-0">
@@ -139,6 +139,11 @@ export function ConversationList({
                             </span>
                           )}
                         </div>
+                        <p className="text-xs text-muted-foreground mb-1 truncate">
+                          {conv.friend.status === "online" 
+                            ? "Online" 
+                            : `Last seen ${formatDistanceToNow(new Date(conv.friend.lastSeen || new Date()), { addSuffix: true })}`}
+                        </p>
                         <div className="flex items-center justify-between gap-2">
                           <p className="text-sm text-muted-foreground truncate">
                             {conv.lastMessage
