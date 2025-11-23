@@ -1,6 +1,6 @@
 import { useState, useEffect, useRef } from "react";
 import { Button } from "@/components/ui/button";
-import { Phone, PhoneOff, Video, VideoOff } from "lucide-react";
+import { Phone, PhoneOff, Video, VideoOff, Circle } from "lucide-react";
 import { useLanguage } from "@/lib/language-context";
 import { AvatarDisplay } from "@/components/avatar-display";
 
@@ -15,6 +15,7 @@ interface CallModalProps {
   onDecline: () => void;
   onEnd: () => void;
   isConnected: boolean;
+  callDuration?: number;
 }
 
 export function CallModal({
@@ -28,10 +29,26 @@ export function CallModal({
   onDecline,
   onEnd,
   isConnected,
+  callDuration = 0,
 }: CallModalProps) {
   const { t } = useLanguage();
   const localVideoRef = useRef<HTMLVideoElement>(null);
   const remoteVideoRef = useRef<HTMLVideoElement>(null);
+  const [displayDuration, setDisplayDuration] = useState(0);
+
+  useEffect(() => {
+    if (!isConnected) return;
+    const interval = setInterval(() => {
+      setDisplayDuration((d) => d + 1);
+    }, 1000);
+    return () => clearInterval(interval);
+  }, [isConnected]);
+
+  const formatDuration = (seconds: number) => {
+    const mins = Math.floor(seconds / 60);
+    const secs = seconds % 60;
+    return `${mins}:${secs.toString().padStart(2, '0')}`;
+  };
 
   useEffect(() => {
     if (localVideoRef.current && localStream) {
@@ -87,9 +104,17 @@ export function CallModal({
     <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
       <div className="bg-card rounded-lg p-6 w-96">
         <div className="text-center mb-6">
-          <p className="text-lg font-semibold">{recipientName}</p>
+          <div className="flex items-center justify-center gap-2 mb-2">
+            <p className="text-lg font-semibold">{recipientName}</p>
+            {!isConnected && (
+              <Circle className="h-3 w-3 animate-pulse bg-red-500 rounded-full" />
+            )}
+            {isConnected && (
+              <Circle className="h-3 w-3 bg-green-500 rounded-full" />
+            )}
+          </div>
           <p className="text-sm text-muted-foreground">
-            {isConnected ? "Connected" : "Connecting..."}
+            {isConnected ? formatDuration(displayDuration) : "Connecting..."}
           </p>
         </div>
 

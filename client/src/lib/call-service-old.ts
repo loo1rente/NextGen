@@ -5,22 +5,16 @@ export interface CallSignal {
   data?: any;
 }
 
-const CALL_TIMEOUT = 60000; // 60 seconds timeout for ringing
-const ICE_TIMEOUT = 10000; // 10 seconds to gather ICE candidates
-
 export class CallService {
   private peerConnection: RTCPeerConnection | null = null;
   private localStream: MediaStream | null = null;
   private remoteStream: MediaStream | null = null;
   private dataChannel: RTCDataChannel | null = null;
-  private callTimeout: NodeJS.Timeout | null = null;
-  private connectionStateTimeout: NodeJS.Timeout | null = null;
 
   constructor(
     private onRemoteStream: (stream: MediaStream) => void,
     private onSignal: (signal: CallSignal) => void,
-    private onCallEnd: () => void,
-    private onConnectionStateChange?: (state: RTCPeerConnectionState) => void
+    private onCallEnd: () => void
   ) {}
 
   async initializeCall(
@@ -42,9 +36,6 @@ export class CallService {
     const offer = await this.peerConnection.createOffer();
     await this.peerConnection.setLocalDescription(offer);
 
-    // Set timeout for call to complete
-    this.setCallTimeout(recipientId, currentUserId);
-
     return {
       offer,
       userId: currentUserId,
@@ -56,8 +47,6 @@ export class CallService {
       await this.peerConnection.setRemoteDescription(
         new RTCSessionDescription(answer)
       );
-      // Clear timeout once answer is received
-      this.clearCallTimeout();
     }
   }
 
@@ -84,9 +73,6 @@ export class CallService {
 
     const answer = await this.peerConnection.createAnswer();
     await this.peerConnection.setLocalDescription(answer);
-
-    // Set timeout for call to complete
-    this.setCallTimeout(recipientId, currentUserId);
 
     return answer;
   }
@@ -126,25 +112,15 @@ export class CallService {
     this.peerConnection.ontrack = (event) => {
       this.remoteStream = event.streams[0];
       this.onRemoteStream(this.remoteStream);
-      this.clearCallTimeout();
     };
 
     this.peerConnection.onconnectionstatechange = () => {
-      const state = this.peerConnection?.connectionState;
-      console.log('Connection state changed:', state);
-      
-      this.onConnectionStateChange?.(state as RTCPeerConnectionState);
-
       if (
-        state === 'failed' ||
-        state === 'disconnected' ||
-        state === 'closed'
+        this.peerConnection?.connectionState === 'failed' ||
+        this.peerConnection?.connectionState === 'disconnected' ||
+        this.peerConnection?.connectionState === 'closed'
       ) {
         this.endCall();
-      }
-
-      if (state === 'connected' || state === 'completed') {
-        this.clearCallTimeout();
       }
     };
 
@@ -162,7 +138,6 @@ export class CallService {
 
     this.dataChannel.onopen = () => {
       console.log('Data channel opened');
-      this.clearCallTimeout();
     };
 
     this.dataChannel.onclose = () => {
@@ -186,34 +161,6 @@ export class CallService {
     }
   }
 
-  private setCallTimeout(recipientId: string, currentUserId: string) {
-    // Clear any existing timeout
-    this.clearCallTimeout();
-
-    // Set timeout - if call doesn't connect in 60 seconds, end it
-    this.callTimeout = setTimeout(() => {
-      console.log('Call timeout - no connection established');
-      this.onSignal({
-        type: 'call-end',
-        fromUserId: currentUserId,
-        toUserId: recipientId,
-        data: { reason: 'timeout' },
-      });
-      this.endCall();
-    }, CALL_TIMEOUT);
-  }
-
-  private clearCallTimeout() {
-    if (this.callTimeout) {
-      clearTimeout(this.callTimeout);
-      this.callTimeout = null;
-    }
-    if (this.connectionStateTimeout) {
-      clearTimeout(this.connectionStateTimeout);
-      this.connectionStateTimeout = null;
-    }
-  }
-
   getLocalStream(): MediaStream | null {
     return this.localStream;
   }
@@ -223,16 +170,9 @@ export class CallService {
   }
 
   endCall() {
-    this.clearCallTimeout();
-
     if (this.localStream) {
       this.localStream.getTracks().forEach((track) => track.stop());
       this.localStream = null;
-    }
-
-    if (this.remoteStream) {
-      this.remoteStream.getTracks().forEach((track) => track.stop());
-      this.remoteStream = null;
     }
 
     if (this.peerConnection) {

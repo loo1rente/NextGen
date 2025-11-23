@@ -11,6 +11,7 @@ import { AvatarDisplay } from "@/components/avatar-display";
 import { GroupManagementPanel } from "@/components/group-management-panel";
 import { CallModal } from "@/components/call-modal";
 import { CallService } from "@/lib/call-service";
+import { NotificationService } from "@/lib/notification-service";
 import type { User, Message } from "@shared/schema";
 
 interface Group {
@@ -54,6 +55,12 @@ export function ChatArea({ friend, group, messages, onSendMessage, isSending, ws
   const userRef = useRef(user);
   const incomingCallDataRef = useRef<{ fromUserId: string; isVideo: boolean; offer: RTCSessionDescriptionInit } | null>(null);
   const listenerSetupRef = useRef(false);
+  const friendRef = useRef(friend);
+
+  // Track connection state for UI
+  useEffect(() => {
+    friendRef.current = friend;
+  }, [friend]);
 
   useEffect(() => {
     wsRef.current = ws || null;
@@ -100,6 +107,8 @@ export function ChatArea({ friend, group, messages, onSendMessage, isSending, ws
         wsRef.current.send(JSON.stringify({
           type: 'call-offer',
           toUserId: friend.id,
+          fromUserId: user.id,
+          callerName: user.username,
           isVideo: false,
           offer,
         }));
@@ -125,6 +134,8 @@ export function ChatArea({ friend, group, messages, onSendMessage, isSending, ws
         wsRef.current.send(JSON.stringify({
           type: 'call-offer',
           toUserId: friend.id,
+          fromUserId: user.id,
+          callerName: user.username,
           isVideo: true,
           offer,
         }));
@@ -215,6 +226,20 @@ export function ChatArea({ friend, group, messages, onSendMessage, isSending, ws
               offer: message.offer,
             });
             setShowCallModal(true);
+
+            // Send notification with sound
+            const callerName = message.callerName || 'Unknown';
+            await NotificationService.sendCallNotification(
+              callerName,
+              message.isVideo,
+              () => {
+                // Accept call handler will be called by user clicking the modal
+              },
+              () => {
+                // Decline handler
+                handleDeclineCall();
+              }
+            );
           }
         }
 
@@ -444,7 +469,7 @@ export function ChatArea({ friend, group, messages, onSendMessage, isSending, ws
       {showCallModal && (
         <CallModal
           recipientName={getRecipientName()}
-          recipientAvatarUrl={friend?.avatarUrl}
+          recipientAvatarUrl={friend?.avatarUrl || undefined}
           isIncoming={!!incomingCallData}
           isVideo={ongoingCallType === 'video'}
           localStream={localStream}

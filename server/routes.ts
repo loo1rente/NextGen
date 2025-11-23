@@ -600,6 +600,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
             recipientWs.send(JSON.stringify({
               type: 'incoming-call',
               fromUserId: userId,
+              callerName: message.callerName || 'Unknown',
               isVideo: message.isVideo,
               offer: message.offer,
             }));
