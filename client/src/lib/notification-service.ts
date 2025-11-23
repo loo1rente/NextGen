@@ -105,8 +105,8 @@ export class NotificationService {
       }
     }
 
-    // Also play repeated ringing sound
-    this.playRepeatingCallSound();
+    // Play call sound only once when notification arrives - do NOT repeat
+    // Repeating sound will be handled by Service Worker for offline notifications
   }
 
   static async sendMessageNotification(

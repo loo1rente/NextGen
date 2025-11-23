@@ -1,3 +1,4 @@
+import { useEffect } from "react";
 import { Switch, Route, Redirect } from "wouter";
 import { queryClient } from "./lib/queryClient";
 import { QueryClientProvider } from "@tanstack/react-query";
@@ -62,6 +63,15 @@ function Router() {
 }
 
 function App() {
+  useEffect(() => {
+    // Request notification permissions for push notifications
+    if ('Notification' in window && Notification.permission === 'default') {
+      Notification.requestPermission().catch((error) => {
+        console.log('Notification permission request failed:', error);
+      });
+    }
+  }, []);
+
   return (
     <QueryClientProvider client={queryClient}>
       <ThemeProvider>

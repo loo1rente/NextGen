@@ -107,7 +107,13 @@ export class CallService {
     if (!this.peerConnection) return;
 
     if (this.localStream) {
+      console.log('Adding local tracks:', {
+        audioTracks: this.localStream.getAudioTracks().length,
+        videoTracks: this.localStream.getVideoTracks().length,
+      });
+      
       this.localStream.getTracks().forEach((track) => {
+        console.log('Adding track:', track.kind);
         this.peerConnection?.addTrack(track, this.localStream!);
       });
     }
@@ -124,8 +130,29 @@ export class CallService {
     };
 
     this.peerConnection.ontrack = (event) => {
-      this.remoteStream = event.streams[0];
-      this.onRemoteStream(this.remoteStream);
+      console.log('Remote track received:', {
+        kind: event.track.kind,
+        enabled: event.track.enabled,
+        streams: event.streams.length,
+      });
+      
+      // Ensure we get the first stream
+      if (event.streams && event.streams.length > 0) {
+        this.remoteStream = event.streams[0];
+      } else if (event.track) {
+        // Fallback: create stream from track if no streams provided
+        if (!this.remoteStream) {
+          this.remoteStream = new MediaStream();
+        }
+        this.remoteStream.addTrack(event.track);
+      }
+      
+      console.log('Remote stream ready:', {
+        audioTracks: this.remoteStream?.getAudioTracks().length,
+        videoTracks: this.remoteStream?.getVideoTracks().length,
+      });
+      
+      this.onRemoteStream(this.remoteStream!);
       this.clearCallTimeout();
     };
 
@@ -143,7 +170,7 @@ export class CallService {
         this.endCall();
       }
 
-      if (state === 'connected' || state === 'completed') {
+      if (state === 'connected') {
         this.clearCallTimeout();
       }
     };

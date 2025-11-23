@@ -58,6 +58,10 @@ export function CallModal({
 
   useEffect(() => {
     if (remoteVideoRef.current && remoteStream) {
+      console.log('Setting remote stream with tracks:', {
+        audioTracks: remoteStream.getAudioTracks().length,
+        videoTracks: remoteStream.getVideoTracks().length,
+      });
       remoteVideoRef.current.srcObject = remoteStream;
     }
   }, [remoteStream]);
@@ -126,8 +130,14 @@ export function CallModal({
                   ref={remoteVideoRef}
                   autoPlay
                   playsInline
+                  controls={false}
                   className="w-full h-64 object-cover"
                 />
+              </div>
+            )}
+            {!remoteStream && isConnected && (
+              <div className="bg-black rounded-lg overflow-hidden h-64 flex items-center justify-center">
+                <p className="text-muted-foreground text-sm">Waiting for video...</p>
               </div>
             )}
             {localStream && (
@@ -137,6 +147,7 @@ export function CallModal({
                   autoPlay
                   playsInline
                   muted
+                  controls={false}
                   className="w-full h-32 object-cover"
                 />
               </div>
