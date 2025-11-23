@@ -427,26 +427,6 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  app.post("/api/groups", async (req, res) => {
-    try {
-      const userId = (req.session as any).userId;
-      if (!userId) {
-        return res.status(401).json({ message: "Not authenticated" });
-      }
-
-      const { name, description } = req.body;
-      if (!name) {
-        return res.status(400).json({ message: "Group name required" });
-      }
-
-      const group = await storage.createGroup({ name, description, createdBy: userId });
-      await storage.addGroupMember(group.id, userId);
-      res.json(group);
-    } catch (error: any) {
-      res.status(400).json({ message: error.message || "Failed to create group" });
-    }
-  });
-
   app.get("/api/groups", async (req, res) => {
     try {
       const userId = (req.session as any).userId;

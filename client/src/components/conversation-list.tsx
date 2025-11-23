@@ -3,11 +3,10 @@ import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Button } from "@/components/ui/button";
-import { Search, Plus } from "lucide-react";
+import { Search } from "lucide-react";
 import { formatDistanceToNow } from "date-fns";
 import { useLanguage } from "@/lib/language-context";
 import { AvatarDisplay } from "@/components/avatar-display";
-import { CreateGroupDialog } from "@/components/create-group-dialog";
 import type { User, Message } from "@shared/schema";
 
 interface Conversation {
@@ -43,7 +42,6 @@ export function ConversationList({
 }: ConversationListProps) {
   const { t } = useLanguage();
   const [searchQuery, setSearchQuery] = useState("");
-  const [createGroupOpen, setCreateGroupOpen] = useState(false);
 
   const filteredConversations = conversations.filter((conv) =>
     conv.friend.username.toLowerCase().includes(searchQuery.toLowerCase())
@@ -73,23 +71,8 @@ export function ConversationList({
               data-testid="input-search-conversations"
             />
           </div>
-          <Button 
-            size="icon" 
-            variant="default" 
-            onClick={() => setCreateGroupOpen(true)}
-            className="shrink-0"
-            data-testid="button-create-group"
-            title={t('messenger.createGroup')}
-          >
-            <Plus className="h-5 w-5" />
-          </Button>
         </div>
       </div>
-
-      <CreateGroupDialog 
-        open={createGroupOpen} 
-        onOpenChange={setCreateGroupOpen}
-      />
 
       <ScrollArea className="flex-1 w-full overflow-hidden">
         <div className="h-full w-full flex flex-col">
