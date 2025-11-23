@@ -174,7 +174,12 @@ export default function MessengerPage() {
     };
   }, [user?.id]);
 
-  const friendsWithMessages: FriendWithMessages[] = friends.map((friend) => {
+  // Deduplicate friends by ID
+  const uniqueFriends = friends.filter((friend, index, self) => 
+    index === self.findIndex((f) => f.id === friend.id)
+  );
+
+  const friendsWithMessages: FriendWithMessages[] = uniqueFriends.map((friend) => {
     const friendMessages = allMessages.filter(
       (msg) =>
         (msg.senderId === user?.id && msg.receiverId === friend.id) ||

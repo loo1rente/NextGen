@@ -113,8 +113,11 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const friendships = await storage.getFriendships(userId);
       const friendIds = friendships.map(f => f.userId === userId ? f.friendId : f.userId);
       
+      // Deduplicate friend IDs using filter
+      const uniqueFriendIds = friendIds.filter((id, index) => friendIds.indexOf(id) === index);
+      
       const friends = await Promise.all(
-        friendIds.map(async (id) => {
+        uniqueFriendIds.map(async (id) => {
           const user = await storage.getUser(id);
           if (!user) return null;
           const { password, ...userWithoutPassword } = user;
