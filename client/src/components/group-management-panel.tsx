@@ -97,7 +97,7 @@ export function GroupManagementPanel({
   const nonMembers = friends.filter(u => !memberIds.has(u.id));
 
   return (
-    <div className="w-60 sm:w-72 md:w-80 border-l border-border flex flex-col h-full bg-card">
+    <div className="hidden lg:flex lg:w-80 border-l border-border flex-col h-full bg-card">
       <div className="h-16 border-b border-border px-4 flex items-center justify-between shrink-0">
         <div>
           <p className="font-semibold text-sm">{groupName}</p>
