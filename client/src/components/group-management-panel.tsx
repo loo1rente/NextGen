@@ -168,7 +168,7 @@ export function GroupManagementPanel({
                           data-testid={`button-remove-member-${member.id}`}
                           title="Kick member from group"
                         >
-                          <Trash2 className="h-4 w-4 text-destructive" />
+                          <X className="h-4 w-4 text-destructive" />
                         </Button>
                       )}
                     </div>
