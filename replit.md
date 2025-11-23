@@ -64,7 +64,9 @@ Preferred communication style: Simple, everyday language.
 **Schema Design:**
 - `users`: Core user accounts with credentials, status, and last seen timestamp
 - `friendships`: Bidirectional relationships with status tracking (pending/accepted)
-- `messages`: Direct messages between users with read status and timestamps
+- `messages`: Direct messages with delivery/read status, soft delete support, edit timestamps
+- `messageReactions`: Emoji reactions on messages with user tracking
+- `blockedUsers`: User blocking relationships for privacy control
 - UUID primary keys generated at database level
 - Cascade deletes for referential integrity
 
@@ -124,7 +126,15 @@ Preferred communication style: Simple, everyday language.
 - **Premium Design**: Enhanced UI with gradients, animations, improved shadows, and better spacing
 - **Responsive Design**: Mobile/tablet/desktop optimized layouts
 
-### Improvements (Latest Session)
+### Latest Features (Session 3)
+- **Typing Indicator (#1)**: Real-time "is typing..." display with WebSocket support for 1-on-1 and group chats
+- **Delete/Edit Messages (#2)**: Edit messages inline or mark as deleted with "(edited)" label and "This message was deleted" placeholder
+- **Message Delivery Status (#3)**: Visual checkmarks show sent (✓), delivered (✓✓), and read (✓✓) states
+- **User Profiles (#5)**: Simple user profile access from chat header with profile information
+- **Emoji Reactions (#6)**: Add emoji reactions to messages with counter display
+- **Block User (#8)**: Block/unblock users with block button in direct message header
+
+### Previous Improvements
 - Fixed WebRTC remote stream handling with proper track management
 - Improved video element playback with explicit play() calls
 - Enhanced track enabled state management
@@ -133,12 +143,13 @@ Preferred communication style: Simple, everyday language.
 - Fixed notification sound looping issue
 
 ### Future Enhancements (Optional)
-- Typing indicator display in UI (backend ready)
-- Real-time message reactions
 - Voice/video call recording
 - Mobile native app version
 - Message encryption
 - Bot integration API
+- Message pinning
+- Forwarding messages
+- Message scheduling
 
 ## External Dependencies
 

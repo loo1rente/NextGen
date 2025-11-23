@@ -56,6 +56,11 @@ export const translations = {
       selectMembers: 'Select Members',
       create: 'Create',
       groupNamePlaceholder: 'Enter group name...',
+      isTyping: 'is typing',
+      areTyping: 'are typing',
+      deletedMessage: 'This message was deleted',
+      edited: '(edited)',
+      save: 'Save',
     },
     settings: {
       settings: 'Settings',
@@ -157,6 +162,11 @@ export const translations = {
       selectMembers: 'Выбрать участников',
       create: 'Создать',
       groupNamePlaceholder: 'Введите имя группы...',
+      isTyping: 'пишет',
+      areTyping: 'пишут',
+      deletedMessage: 'Это сообщение было удалено',
+      edited: '(отредактировано)',
+      save: 'Сохранить',
     },
     settings: {
       settings: 'Параметры',
