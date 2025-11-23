@@ -29,9 +29,11 @@ interface ChatAreaProps {
   onSendMessage: (content: string) => void;
   isSending: boolean;
   ws?: WebSocket | null;
+  onMessageUpdate?: (updatedMessage: Message) => void;
+  onMessageDelete?: (messageId: string) => void;
 }
 
-export function ChatArea({ friend, group, messages, onSendMessage, isSending, ws }: ChatAreaProps) {
+export function ChatArea({ friend, group, messages, onSendMessage, isSending, ws, onMessageUpdate, onMessageDelete }: ChatAreaProps) {
   const { user } = useAuth();
   const { t } = useLanguage();
   const { toast } = useToast();
@@ -338,6 +340,7 @@ export function ChatArea({ friend, group, messages, onSendMessage, isSending, ws
   const handleDeleteMessage = async (messageId: string) => {
     try {
       await fetch(`/api/messages/${messageId}`, { method: 'DELETE' });
+      onMessageDelete?.(messageId);
       toast({ title: "Message deleted" });
     } catch (error) {
       toast({ title: "Error deleting message", variant: "destructive" });
@@ -346,13 +349,18 @@ export function ChatArea({ friend, group, messages, onSendMessage, isSending, ws
 
   const handleEditMessage = async (messageId: string, newContent: string) => {
     try {
-      await fetch(`/api/messages/${messageId}`, {
+      const response = await fetch(`/api/messages/${messageId}`, {
         method: 'PATCH',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ content: newContent }),
       });
-      setEditingMessageId(null);
-      toast({ title: "Message updated" });
+      
+      if (response.ok) {
+        const updatedMessage = await response.json();
+        onMessageUpdate?.(updatedMessage);
+        setEditingMessageId(null);
+        toast({ title: "Message updated" });
+      }
     } catch (error) {
       toast({ title: "Error editing message", variant: "destructive" });
     }

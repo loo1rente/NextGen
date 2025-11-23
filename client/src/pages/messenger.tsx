@@ -272,6 +272,20 @@ export default function MessengerPage() {
     }
   };
 
+  const handleMessageUpdate = (updatedMessage: Message) => {
+    queryClient.setQueryData(["/api/messages"], (old: Message[] | undefined) => {
+      if (!old) return [updatedMessage];
+      return old.map(m => m.id === updatedMessage.id ? updatedMessage : m);
+    });
+  };
+
+  const handleMessageDelete = (messageId: string) => {
+    queryClient.setQueryData(["/api/messages"], (old: Message[] | undefined) => {
+      if (!old) return [];
+      return old.map(m => m.id === messageId ? { ...m, isDeleted: true } : m);
+    });
+  };
+
   const handleStartChat = (friendId: string) => {
     setSelectedFriendId(friendId);
     setActiveView("chats");
@@ -315,6 +329,8 @@ export default function MessengerPage() {
               onSendMessage={handleSendMessage}
               isSending={sendMessageMutation.isPending}
               ws={ws}
+              onMessageUpdate={handleMessageUpdate}
+              onMessageDelete={handleMessageDelete}
             />
           </>
         )}
