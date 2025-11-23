@@ -6,6 +6,7 @@ import { insertUserSchema, insertMessageSchema } from "@shared/schema";
 import bcrypt from "bcrypt";
 
 const connectedUsers = new Map<string, WebSocket>();
+const activeCallSessions = new Map<string, { callerId: string; recipientId: string }>();
 
 export async function registerRoutes(app: Express): Promise<Server> {
   app.post("/api/auth/register", async (req, res) => {
@@ -586,6 +587,51 @@ export async function registerRoutes(app: Express): Promise<Server> {
           if (userId) {
             connectedUsers.set(userId, ws);
             await storage.updateUserStatus(userId, "online");
+          }
+        }
+
+        // Handle call signals
+        if (message.type === 'call-offer' && message.toUserId) {
+          const recipientWs = connectedUsers.get(message.toUserId);
+          if (recipientWs && recipientWs.readyState === 1) {
+            recipientWs.send(JSON.stringify({
+              type: 'incoming-call',
+              fromUserId: userId,
+              isVideo: message.isVideo,
+              offer: message.offer,
+            }));
+          }
+        }
+
+        if (message.type === 'call-answer' && message.toUserId) {
+          const callerWs = connectedUsers.get(message.toUserId);
+          if (callerWs && callerWs.readyState === 1) {
+            callerWs.send(JSON.stringify({
+              type: 'call-answer',
+              fromUserId: userId,
+              answer: message.answer,
+            }));
+          }
+        }
+
+        if (message.type === 'ice-candidate' && message.toUserId) {
+          const targetWs = connectedUsers.get(message.toUserId);
+          if (targetWs && targetWs.readyState === 1) {
+            targetWs.send(JSON.stringify({
+              type: 'ice-candidate',
+              fromUserId: userId,
+              candidate: message.candidate,
+            }));
+          }
+        }
+
+        if (message.type === 'call-end' && message.toUserId) {
+          const targetWs = connectedUsers.get(message.toUserId);
+          if (targetWs && targetWs.readyState === 1) {
+            targetWs.send(JSON.stringify({
+              type: 'call-ended',
+              fromUserId: userId,
+            }));
           }
         }
       } catch (error) {

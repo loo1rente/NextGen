@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef } from "react";
+import { useState, useEffect, useRef, useCallback } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { ScrollArea } from "@/components/ui/scroll-area";
@@ -9,6 +9,8 @@ import { useLanguage } from "@/lib/language-context";
 import { useToast } from "@/hooks/use-toast";
 import { AvatarDisplay } from "@/components/avatar-display";
 import { GroupManagementPanel } from "@/components/group-management-panel";
+import { CallModal } from "@/components/call-modal";
+import { CallService } from "@/lib/call-service";
 import type { User, Message } from "@shared/schema";
 
 interface Group {
@@ -25,9 +27,10 @@ interface ChatAreaProps {
   messages: Message[];
   onSendMessage: (content: string) => void;
   isSending: boolean;
+  ws?: WebSocket | null;
 }
 
-export function ChatArea({ friend, group, messages, onSendMessage, isSending }: ChatAreaProps) {
+export function ChatArea({ friend, group, messages, onSendMessage, isSending, ws }: ChatAreaProps) {
   const { user } = useAuth();
   const { t } = useLanguage();
   const { toast } = useToast();
@@ -35,20 +38,197 @@ export function ChatArea({ friend, group, messages, onSendMessage, isSending }: 
   const [showGroupPanel, setShowGroupPanel] = useState(false);
   const scrollAreaRef = useRef<HTMLDivElement>(null);
   const messagesEndRef = useRef<HTMLDivElement>(null);
+  const wsRef = useRef<WebSocket | null>(ws || null);
 
-  const handleVoiceCall = () => {
-    toast({
-      title: "Voice Call",
-      description: "Voice calling feature coming soon! Make sure Twilio credentials are configured.",
-    });
+  useEffect(() => {
+    wsRef.current = ws || null;
+  }, [ws]);
+
+  // Call state
+  const [callService, setCallService] = useState<CallService | null>(null);
+  const [showCallModal, setShowCallModal] = useState(false);
+  const [incomingCallData, setIncomingCallData] = useState<{ fromUserId: string; isVideo: boolean; offer: RTCSessionDescriptionInit } | null>(null);
+  const [localStream, setLocalStream] = useState<MediaStream | null>(null);
+  const [remoteStream, setRemoteStream] = useState<MediaStream | null>(null);
+  const [isCallConnected, setIsCallConnected] = useState(false);
+  const [ongoingCallType, setOngoingCallType] = useState<'voice' | 'video' | null>(null);
+
+  const initializeCallService = useCallback((isVideo: boolean, recipientId: string) => {
+    const service = new CallService(
+      (stream) => setRemoteStream(stream),
+      (signal) => {
+        if (wsRef.current) {
+          wsRef.current.send(JSON.stringify(signal));
+        }
+      },
+      () => {
+        setShowCallModal(false);
+        setLocalStream(null);
+        setRemoteStream(null);
+        setIsCallConnected(false);
+        setOngoingCallType(null);
+        setCallService(null);
+      }
+    );
+    setCallService(service);
+    setOngoingCallType(isVideo ? 'video' : 'voice');
+    return service;
+  }, []);
+
+  const handleVoiceCall = async () => {
+    if (!friend || !user) return;
+    try {
+      const service = initializeCallService(false, friend.id);
+      const { offer } = await service.initializeCall(false, friend.id, user.id);
+      setLocalStream(service.getLocalStream());
+      setShowCallModal(true);
+
+      if (wsRef.current) {
+        wsRef.current.send(JSON.stringify({
+          type: 'call-offer',
+          toUserId: friend.id,
+          isVideo: false,
+          offer,
+        }));
+      }
+    } catch (error) {
+      toast({
+        title: "Error",
+        description: "Failed to start voice call. Please check your microphone permissions.",
+        variant: "destructive",
+      });
+    }
   };
 
-  const handleVideoCall = () => {
-    toast({
-      title: "Video Call",
-      description: "Video calling feature coming soon! Make sure Twilio credentials are configured.",
-    });
+  const handleVideoCall = async () => {
+    if (!friend || !user) return;
+    try {
+      const service = initializeCallService(true, friend.id);
+      const { offer } = await service.initializeCall(true, friend.id, user.id);
+      setLocalStream(service.getLocalStream());
+      setShowCallModal(true);
+
+      if (wsRef.current) {
+        wsRef.current.send(JSON.stringify({
+          type: 'call-offer',
+          toUserId: friend.id,
+          isVideo: true,
+          offer,
+        }));
+      }
+    } catch (error) {
+      toast({
+        title: "Error",
+        description: "Failed to start video call. Please check your camera and microphone permissions.",
+        variant: "destructive",
+      });
+    }
   };
+
+  const handleAcceptCall = async () => {
+    if (!incomingCallData || !callService || !user) return;
+    try {
+      const answer = await callService.handleOffer(incomingCallData.offer, incomingCallData.isVideo, incomingCallData.fromUserId, user.id);
+      setLocalStream(callService.getLocalStream());
+      setIsCallConnected(true);
+
+      if (wsRef.current) {
+        wsRef.current.send(JSON.stringify({
+          type: 'call-answer',
+          toUserId: incomingCallData.fromUserId,
+          answer,
+        }));
+      }
+      setIncomingCallData(null);
+    } catch (error) {
+      toast({
+        title: "Error",
+        description: "Failed to accept call",
+        variant: "destructive",
+      });
+      handleDeclineCall();
+    }
+  };
+
+  const handleDeclineCall = () => {
+    if (callService) {
+      callService.endCall();
+    }
+    setIncomingCallData(null);
+    setCallService(null);
+  };
+
+  const handleEndCall = () => {
+    if (callService && user && incomingCallData) {
+      if (wsRef.current) {
+        wsRef.current.send(JSON.stringify({
+          type: 'call-end',
+          toUserId: incomingCallData.fromUserId,
+        }));
+      }
+      callService.endCall();
+    } else if (callService && friend && user) {
+      if (wsRef.current) {
+        wsRef.current.send(JSON.stringify({
+          type: 'call-end',
+          toUserId: friend.id,
+        }));
+      }
+      callService.endCall();
+    }
+  };
+
+  const getRecipientName = (): string => {
+    if (friend && friend.username) return friend.username;
+    if (group && group.name) return group.name;
+    return "Unknown";
+  };
+
+  // Setup WebSocket listener for incoming calls
+  useEffect(() => {
+    if (!wsRef.current) return;
+
+    const handleMessage = async (event: MessageEvent) => {
+      try {
+        const message = JSON.parse(event.data);
+
+        if (message.type === 'incoming-call' && !callService) {
+          const service = initializeCallService(message.isVideo, message.fromUserId);
+          setCallService(service);
+          setIncomingCallData({
+            fromUserId: message.fromUserId,
+            isVideo: message.isVideo,
+            offer: message.offer,
+          });
+          setShowCallModal(true);
+        }
+
+        if (message.type === 'call-answer' && callService) {
+          await callService.handleAnswer(message.answer);
+          setIsCallConnected(true);
+        }
+
+        if (message.type === 'ice-candidate' && callService) {
+          await callService.handleIceCandidate(message.candidate);
+        }
+
+        if (message.type === 'call-ended') {
+          if (callService) {
+            callService.endCall();
+          }
+        }
+      } catch (error) {
+        console.error('Error handling WebSocket message:', error);
+      }
+    };
+
+    wsRef.current.addEventListener('message', handleMessage);
+    return () => {
+      if (wsRef.current) {
+        wsRef.current.removeEventListener('message', handleMessage);
+      }
+    };
+  }, [callService, user]);
 
   const scrollToBottom = () => {
     messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
@@ -235,6 +415,21 @@ export function ChatArea({ friend, group, messages, onSendMessage, isSending }: 
           groupName={group.name}
           isCreator={group.createdBy === user?.id}
           onClose={() => setShowGroupPanel(false)}
+        />
+      )}
+
+      {showCallModal && (
+        <CallModal
+          recipientName={getRecipientName()}
+          recipientAvatarUrl={friend?.avatarUrl}
+          isIncoming={!!incomingCallData}
+          isVideo={ongoingCallType === 'video'}
+          localStream={localStream}
+          remoteStream={remoteStream}
+          onAccept={handleAcceptCall}
+          onDecline={handleDeclineCall}
+          onEnd={handleEndCall}
+          isConnected={isCallConnected}
         />
       )}
     </div>

@@ -301,6 +301,7 @@ export default function MessengerPage() {
               messages={selectedMessages}
               onSendMessage={handleSendMessage}
               isSending={sendMessageMutation.isPending}
+              ws={ws}
             />
           </>
         )}
