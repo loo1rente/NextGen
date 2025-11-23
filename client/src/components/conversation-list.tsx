@@ -113,20 +113,20 @@ export function ConversationList({
                   <button
                     key={conv.friend.id}
                     onClick={() => onSelectConversation(conv.friend.id)}
-                    className={`w-full p-3 rounded-lg text-left transition-all hover-elevate active-elevate-2 ${
+                    className={`w-full p-3 rounded-lg text-left transition-all hover-elevate active-elevate-2 overflow-visible ${
                       isSelected ? "bg-primary/10 border border-primary/20" : "hover:bg-muted"
                     }`}
                     data-testid={`button-conversation-${conv.friend.id}`}
                   >
-                    <div className="flex items-start gap-3">
-                      <div className="relative shrink-0">
+                    <div className="flex items-start gap-3 overflow-visible">
+                      <div className="relative shrink-0 overflow-visible">
                         <AvatarDisplay 
                           username={conv.friend.username} 
                           avatarUrl={conv.friend.avatarUrl}
                           size="md"
                         />
                         {conv.friend.status === "online" && (
-                          <div className="absolute bottom-0 right-0 h-2.5 w-2.5 rounded-full bg-status-online border-2 border-card" />
+                          <div className="absolute bottom-0 right-0 h-2.5 w-2.5 rounded-full bg-status-online border-2 border-card z-10" />
                         )}
                       </div>
 
@@ -167,12 +167,12 @@ export function ConversationList({
                   <button
                     key={conv.group.id}
                     onClick={() => onSelectGroup(conv.group.id)}
-                    className={`w-full p-3 rounded-lg text-left transition-all hover-elevate active-elevate-2 ${
+                    className={`w-full p-3 rounded-lg text-left transition-all hover-elevate active-elevate-2 overflow-visible ${
                       isSelected ? "bg-primary/10 border border-primary/20" : "hover:bg-muted"
                     }`}
                     data-testid={`button-group-${conv.group.id}`}
                   >
-                    <div className="flex items-start gap-3">
+                    <div className="flex items-start gap-3 overflow-visible">
                       <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-primary/20 shrink-0">
                         <span className="text-xs font-semibold text-primary">{conv.group.name.charAt(0).toUpperCase()}</span>
                       </div>
