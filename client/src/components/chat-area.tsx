@@ -778,7 +778,7 @@ export function ChatArea({ friend, group, messages, onSendMessage, isSending, ws
         )}
         {isBlockedByOther && (
           <div className="text-xs text-destructive mb-2 px-2 py-1 bg-destructive/10 rounded">
-            This user has blocked you - you cannot send messages
+            The user blocked you - you cannot send messages
           </div>
         )}
         <form onSubmit={handleSubmit} className="flex items-center gap-2">
