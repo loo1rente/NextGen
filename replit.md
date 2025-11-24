@@ -151,10 +151,33 @@ Preferred communication style: Simple, everyday language.
 - Forwarding messages
 - Message scheduling
 
+## Deployment Guide
+
+### Deploy to Render (Production)
+
+**Complete step-by-step instructions in `RENDER_DEPLOYMENT.md`**
+
+Quick summary:
+1. Create PostgreSQL database on Render
+2. Create Web Service on Render with:
+   - Build: `npm run build`
+   - Start: `npm start`
+3. Add environment variables:
+   - `DATABASE_URL` - from PostgreSQL database
+   - `SESSION_SECRET` - any secure random string
+4. Deploy and wait for "Live" status
+
+The application will:
+- Automatically create all database tables on first run
+- Use PostgreSQL for persistent data (users, messages, sessions)
+- Support real-time WebSocket (calls, messages, presence)
+- Work with free Render tier (with limitations)
+
 ## External Dependencies
 
 **Core Infrastructure:**
-- Neon Database: Serverless PostgreSQL hosting
+- Neon Database: Serverless PostgreSQL hosting (Replit built-in)
+- Render: Production hosting platform
 - WebSocket Protocol: Real-time bidirectional communication
 
 **Build & Development:**
