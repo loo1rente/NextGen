@@ -46,6 +46,7 @@ export function ChatArea({ friend, group, messages, onSendMessage, isSending, ws
   const [reactions, setReactions] = useState<Record<string, any[]>>({});
   const [showReactionPicker, setShowReactionPicker] = useState<string | null>(null);
   const [isBlocked, setIsBlocked] = useState(false);
+  const [isBlockedByOther, setIsBlockedByOther] = useState(false);
   const typingTimeoutRef = useRef<NodeJS.Timeout | null>(null);
   const scrollAreaRef = useRef<HTMLDivElement>(null);
   const messagesEndRef = useRef<HTMLDivElement>(null);
@@ -462,13 +463,25 @@ export function ChatArea({ friend, group, messages, onSendMessage, isSending, ws
     checkBlockStatus();
   }, [friend?.id, user?.id]);
 
-  // Setup typing indicator WebSocket handler
+  // Setup WebSocket handlers (typing, blocking, etc)
   useEffect(() => {
     if (!wsRef.current) return;
 
-    const handleTyping = (event: MessageEvent) => {
+    const handleMessage = (event: MessageEvent) => {
       try {
         const message = JSON.parse(event.data);
+        
+        // Handle block/unblock notifications
+        if (message.type === 'user-blocked') {
+          setIsBlockedByOther(true);
+          toast({ title: `${message.blockedBy} has blocked you`, variant: "destructive" });
+        }
+        if (message.type === 'user-unblocked') {
+          setIsBlockedByOther(false);
+          toast({ title: `${message.unblockedBy} has unblocked you` });
+        }
+        
+        // Handle typing
         if (message.type === 'typing' && message.fromUserId) {
           setTypingUsers(prev => {
             const updated = new Set(prev);
@@ -496,10 +509,10 @@ export function ChatArea({ friend, group, messages, onSendMessage, isSending, ws
       }
     };
 
-    wsRef.current.addEventListener('message', handleTyping);
+    wsRef.current.addEventListener('message', handleMessage);
     return () => {
       if (wsRef.current) {
-        wsRef.current.removeEventListener('message', handleTyping);
+        wsRef.current.removeEventListener('message', handleMessage);
       }
     };
   }, []);
@@ -763,6 +776,11 @@ export function ChatArea({ friend, group, messages, onSendMessage, isSending, ws
             You cannot message this user - contact is blocked
           </div>
         )}
+        {isBlockedByOther && (
+          <div className="text-xs text-destructive mb-2 px-2 py-1 bg-destructive/10 rounded">
+            This user has blocked you - you cannot send messages
+          </div>
+        )}
         <form onSubmit={handleSubmit} className="flex items-center gap-2">
           <Input
             type="text"
@@ -770,13 +788,13 @@ export function ChatArea({ friend, group, messages, onSendMessage, isSending, ws
             value={messageInput}
             onChange={handleTyping}
             className="flex-1 rounded-full h-9 text-sm"
-            disabled={isSending || isBlocked}
+            disabled={isSending || isBlocked || isBlockedByOther}
             data-testid="input-message"
           />
           <Button
             type="submit"
             size="icon"
-            disabled={!messageInput.trim() || isSending || isBlocked}
+            disabled={!messageInput.trim() || isSending || isBlocked || isBlockedByOther}
             className="rounded-full shrink-0 h-9 w-9"
             data-testid="button-send-message"
           >

@@ -649,6 +649,18 @@ export async function registerRoutes(app: Express): Promise<Server> {
       }
       const { blockedUserId } = req.params;
       await storage.blockUser(userId, blockedUserId);
+      
+      // Notify blocked user via WebSocket
+      const blockedUserWs = connectedUsers.get(blockedUserId);
+      if (blockedUserWs && blockedUserWs.readyState === WebSocket.OPEN) {
+        const blocker = await storage.getUser(userId);
+        blockedUserWs.send(JSON.stringify({
+          type: "user-blocked",
+          blockedBy: blocker?.username || "Unknown",
+          blockerId: userId,
+        }));
+      }
+      
       res.json({ message: "User blocked" });
     } catch (error: any) {
       res.status(400).json({ message: error.message || "Failed to block user" });
@@ -664,6 +676,18 @@ export async function registerRoutes(app: Express): Promise<Server> {
       }
       const { blockedUserId } = req.params;
       await storage.unblockUser(userId, blockedUserId);
+      
+      // Notify unblocked user via WebSocket
+      const unblockedUserWs = connectedUsers.get(blockedUserId);
+      if (unblockedUserWs && unblockedUserWs.readyState === WebSocket.OPEN) {
+        const unblocker = await storage.getUser(userId);
+        unblockedUserWs.send(JSON.stringify({
+          type: "user-unblocked",
+          unblockedBy: unblocker?.username || "Unknown",
+          unblockerId: userId,
+        }));
+      }
+      
       res.json({ message: "User unblocked" });
     } catch (error: any) {
       res.status(400).json({ message: error.message || "Failed to unblock user" });
