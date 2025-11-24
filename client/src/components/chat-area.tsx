@@ -47,6 +47,7 @@ export function ChatArea({ friend, group, messages, onSendMessage, isSending, ws
   const [showReactionPicker, setShowReactionPicker] = useState<string | null>(null);
   const [isBlocked, setIsBlocked] = useState(false);
   const [isBlockedByOther, setIsBlockedByOther] = useState(false);
+  const [blockNotification, setBlockNotification] = useState<{ type: 'blocked' | 'unblocked'; username: string } | null>(null);
   const typingTimeoutRef = useRef<NodeJS.Timeout | null>(null);
   const scrollAreaRef = useRef<HTMLDivElement>(null);
   const messagesEndRef = useRef<HTMLDivElement>(null);
@@ -474,11 +475,11 @@ export function ChatArea({ friend, group, messages, onSendMessage, isSending, ws
         // Handle block/unblock notifications
         if (message.type === 'user-blocked') {
           setIsBlockedByOther(true);
-          toast({ title: `${message.blockedBy} has blocked you`, variant: "destructive" });
+          setBlockNotification({ type: 'blocked', username: message.blockedBy });
         }
         if (message.type === 'user-unblocked') {
           setIsBlockedByOther(false);
-          toast({ title: `${message.unblockedBy} has unblocked you` });
+          setBlockNotification({ type: 'unblocked', username: message.unblockedBy });
         }
         
         // Handle typing
@@ -533,6 +534,14 @@ export function ChatArea({ friend, group, messages, onSendMessage, isSending, ws
 
   return (
     <div className="flex-1 flex flex-col bg-background min-h-0">
+      {blockNotification && (
+        <div className={`px-4 py-2 text-sm text-center ${blockNotification.type === 'blocked' ? 'bg-destructive/20 text-destructive' : 'bg-green-500/20 text-green-700 dark:text-green-400'}`}>
+          {blockNotification.type === 'blocked' 
+            ? `${blockNotification.username} has blocked you`
+            : `${blockNotification.username} has unblocked you`
+          }
+        </div>
+      )}
       <div className="h-16 border-b border-border px-4 flex items-center justify-between shrink-0 bg-gradient-to-r from-background to-background/95">
         <div className="flex items-center gap-3">
           <div className="relative">
