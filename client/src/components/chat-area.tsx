@@ -442,11 +442,12 @@ export function ChatArea({ friend, group, messages, onSendMessage, isSending, ws
     }
   }, [messages.map(m => m.id).join(',')]);
 
-  // Check block status when friend changes
+  // Check block status when friend changes and clear notification
   useEffect(() => {
     const checkBlockStatus = async () => {
       if (!friend || !user) {
         setIsBlocked(false);
+        setBlockNotification(null);
         return;
       }
       
@@ -461,8 +462,18 @@ export function ChatArea({ friend, group, messages, onSendMessage, isSending, ws
       }
     };
     
+    setBlockNotification(null); // Clear notification when switching friends
     checkBlockStatus();
   }, [friend?.id, user?.id]);
+
+  // Auto-clear block notification after 5 seconds
+  useEffect(() => {
+    if (!blockNotification) return;
+    const timer = setTimeout(() => {
+      setBlockNotification(null);
+    }, 5000);
+    return () => clearTimeout(timer);
+  }, [blockNotification]);
 
   // Setup WebSocket handlers (typing, blocking, etc)
   useEffect(() => {
@@ -474,10 +485,12 @@ export function ChatArea({ friend, group, messages, onSendMessage, isSending, ws
         
         // Handle block/unblock notifications
         if (message.type === 'user-blocked') {
+          console.log('Block notification received:', message);
           setIsBlockedByOther(true);
           setBlockNotification({ type: 'blocked', username: message.blockedBy });
         }
         if (message.type === 'user-unblocked') {
+          console.log('Unblock notification received:', message);
           setIsBlockedByOther(false);
           setBlockNotification({ type: 'unblocked', username: message.unblockedBy });
         }
