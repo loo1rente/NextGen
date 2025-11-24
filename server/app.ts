@@ -28,6 +28,11 @@ export function log(message: string, source = "express") {
 
 export const app = express();
 
+// Trust proxy for production (Render uses proxy)
+if (process.env.NODE_ENV === "production") {
+  app.set("trust proxy", 1);
+}
+
 declare module 'http' {
   interface IncomingMessage {
     rawBody: unknown
@@ -58,7 +63,8 @@ app.use(
       maxAge: 7 * 24 * 60 * 60 * 1000,
       httpOnly: true,
       secure: process.env.NODE_ENV === "production",
-      sameSite: "lax",
+      sameSite: process.env.NODE_ENV === "production" ? "strict" : "lax",
+      domain: process.env.NODE_ENV === "production" ? undefined : undefined,
     },
   })
 );
